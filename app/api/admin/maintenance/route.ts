@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
       .sort({ dueDate: -1 })
       .lean();
 
-    return apiSuccess({ maintenance }, "All maintenance fetched.");
+    return apiSuccess({ maintenance }, "All maintenance fetched.",200);
   } catch (error) {
     console.error("Get all maintenance error:", error);
 

@@ -39,7 +39,7 @@ export async function DELETE(request: NextRequest) {
       Invoice.deleteMany({ userId: user.userId }),
     ]);
 
-    const response = apiSuccess({}, "Account deleted successfully.");
+    const response = apiSuccess({}, "Account deleted successfully.",200);
 
     response.cookies.set(TOKEN_COOKIE, "", {
       httpOnly: true,

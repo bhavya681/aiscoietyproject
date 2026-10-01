@@ -62,7 +62,7 @@ export async function PUT(
       return apiError("User not found.", 404);
     }
 
-    return apiSuccess({ user: updated }, "User role updated successfully.");
+    return apiSuccess({ user: updated }, "User role updated successfully.",200);
   } catch (error) {
     console.error("Update role error:", error);
 

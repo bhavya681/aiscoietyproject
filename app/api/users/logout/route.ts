@@ -2,7 +2,7 @@ import { apiSuccess } from "@/app/lib/apiResponse";
 import { TOKEN_COOKIE } from "@/app/lib/auth";
 
 export async function POST() {
-  const response = apiSuccess({}, "Logged out successfully.");
+  const response = apiSuccess({}, "Logged out successfully.",200);
 
   response.cookies.set(TOKEN_COOKIE, "", {
     httpOnly: true,

@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       return apiError("User not found.", 404);
     }
 
-    return apiSuccess({ profile }, "Profile fetched.");
+    return apiSuccess({ profile }, "Profile fetched.",200);
   } catch (error) {
     console.error("Profile error:", error);
 

@@ -70,7 +70,7 @@ async function handleUpdate(request: NextRequest) {
       return apiError("User not found.", 404);
     }
 
-    return apiSuccess({ user: profile }, "Profile updated successfully.");
+    return apiSuccess({ user: profile }, "Profile updated successfully.",200);
   } catch (error) {
     console.error("Update profile error:", error);
 

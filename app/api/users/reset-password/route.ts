@@ -73,7 +73,7 @@ export async function PUT(request: NextRequest) {
 
     await account.save();
 
-    return apiSuccess({}, "Password updated successfully.");
+    return apiSuccess({}, "Password updated successfully.",200);
   } catch (error) {
     console.error("Reset password error:", error);
 
