@@ -38,9 +38,10 @@ export default function LoginPage() {
         return;
       }
 
-      localStorage.setItem("token", data.user.token);
-
+      // The JWT is set as an httpOnly cookie by the server, so there is
+      // nothing sensitive to store in the browser.
       router.push("/dashboard");
+      router.refresh();
     } catch {
       setError("Unable to connect to the server.");
     } finally {
@@ -101,7 +102,7 @@ export default function LoginPage() {
         </form>
 
         <p className="mt-6 text-center text-sm text-slate-500">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link
             href="/signup"
             className="font-semibold text-indigo-600"

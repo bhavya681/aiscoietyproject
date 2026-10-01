@@ -1,57 +1,53 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+
 import { apiFetch } from "@/app/lib/api";
+
+type SignupForm = {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  address: string;
+};
+
+const EMPTY_FORM: SignupForm = {
+  name: "",
+  email: "",
+  password: "",
+  phone: "",
+  address: "",
+};
 
 export default function SignupPage() {
   const router = useRouter();
 
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    phone: "",
-    address: "",
-    role: "resident",
-  });
-
+  const [form, setForm] = useState<SignupForm>(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  function updateField(
-    field: string,
-    value: string
-  ) {
-    setForm((previous) => ({
-      ...previous,
-      [field]: value,
-    }));
+  function updateField(field: keyof SignupForm, value: string) {
+    setForm((previous) => ({ ...previous, [field]: value }));
   }
 
-  async function handleSignup(
-    event: FormEvent<HTMLFormElement>
-  ) {
+  async function handleSignup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setLoading(true);
     setError("");
 
     try {
-      await apiFetch("/users/signup", {
-        method: "POST",
-        body: JSON.stringify({
-          ...form,
-          phone: Number(form.phone),
-        }),
-      });
+      // Note: no `role` is sent. The server always creates residents, so a
+      // visitor cannot sign themselves up as an admin.
+      await apiFetch("/users/signup", { method: "POST", body: form });
 
       router.push("/login");
-    } catch (error) {
+    } catch (caught) {
       setError(
-        error instanceof Error
-          ? error.message
-          : "Signup failed"
+        caught instanceof Error ? caught.message : "Signup failed."
       );
     } finally {
       setLoading(false);
@@ -61,24 +57,21 @@ export default function SignupPage() {
   return (
     <main className="min-h-screen bg-zinc-950 px-4 py-12">
       <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800 bg-zinc-900 p-8">
-        <h1 className="text-3xl font-bold text-white">
-          Create account
-        </h1>
+        <Link href="/" className="text-sm font-semibold text-indigo-400">
+          ← SocietyAI
+        </Link>
+
+        <h1 className="mt-8 text-3xl font-bold text-white">Create account</h1>
 
         <p className="mt-2 text-zinc-400">
-          Join your society
+          Join your society. New accounts are created as residents.
         </p>
 
-        <form
-          onSubmit={handleSignup}
-          className="mt-8 space-y-5"
-        >
+        <form onSubmit={handleSignup} className="mt-8 space-y-5">
           <input
             placeholder="Full name"
             value={form.name}
-            onChange={(e) =>
-              updateField("name", e.target.value)
-            }
+            onChange={(event) => updateField("name", event.target.value)}
             className="input"
             required
           />
@@ -87,49 +80,46 @@ export default function SignupPage() {
             type="email"
             placeholder="Email"
             value={form.email}
-            onChange={(e) =>
-              updateField("email", e.target.value)
-            }
+            onChange={(event) => updateField("email", event.target.value)}
             className="input"
             required
           />
 
-          <input
-            type="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={(e) =>
-              updateField("password", e.target.value)
-            }
-            className="input"
-            required
-          />
+          <div>
+            <input
+              type="password"
+              placeholder="Password"
+              value={form.password}
+              onChange={(event) =>
+                updateField("password", event.target.value)
+              }
+              className="input"
+              minLength={8}
+              required
+            />
+
+            <p className="mt-2 text-xs text-zinc-500">
+              Minimum 8 characters.
+            </p>
+          </div>
 
           <input
             placeholder="Phone"
             value={form.phone}
-            onChange={(e) =>
-              updateField("phone", e.target.value)
-            }
+            onChange={(event) => updateField("phone", event.target.value)}
             className="input"
             required
           />
 
           <textarea
-            placeholder="Address"
+            placeholder="Flat address"
             value={form.address}
-            onChange={(e) =>
-              updateField("address", e.target.value)
-            }
+            onChange={(event) => updateField("address", event.target.value)}
             className="input min-h-28"
             required
           />
 
-          {error && (
-            <p className="text-sm text-red-400">
-              {error}
-            </p>
-          )}
+          {error && <p className="text-sm text-red-400">{error}</p>}
 
           <button
             type="submit"
@@ -139,6 +129,13 @@ export default function SignupPage() {
             {loading ? "Creating..." : "Create account"}
           </button>
         </form>
+
+        <p className="mt-6 text-center text-sm text-zinc-400">
+          Already have an account?{" "}
+          <Link href="/login" className="font-semibold text-indigo-400">
+            Sign in
+          </Link>
+        </p>
       </div>
     </main>
   );

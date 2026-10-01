@@ -3,49 +3,43 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const navigation = [
-  {
-    name: "Dashboard",
-    href: "/dashboard",
-    icon: "⌂",
-  },
-  {
-    name: "Maintenance",
-    href: "/maintenance",
-    icon: "₹",
-  },
-  {
-    name: "Payment History",
-    href: "/maintenance/history",
-    icon: "↗",
-  },
-  {
-    name: "AI Assistant",
-    href: "/ai",
-    icon: "✦",
-  },
-  {
-    name: "Profile",
-    href: "/profile",
-    icon: "○",
-  },
-];
+import type { Role } from "@/app/lib/types";
 
-export default function Sidebar() {
+const NAVIGATION = [
+  { name: "Dashboard", href: "/dashboard", icon: "⌂" },
+  { name: "Maintenance", href: "/maintenance", icon: "₹" },
+  { name: "Payment History", href: "/maintenance/history", icon: "↗" },
+  { name: "AI Assistant", href: "/ai", icon: "✦" },
+  { name: "Profile", href: "/profile", icon: "○" },
+] as const;
+
+const ADMIN_NAVIGATION = [
+  { name: "Admin Panel", href: "/admin", icon: "★" },
+] as const;
+
+type SidebarProps = {
+  role?: Role;
+};
+
+export default function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
 
+  const items =
+    role === "admin"
+      ? [...ADMIN_NAVIGATION, ...NAVIGATION]
+      : [...NAVIGATION];
+
   return (
-    <aside className="hidden min-h-[calc(100vh-4rem)] w-64 border-r border-zinc-200 bg-white md:block">
+    <aside className="hidden min-h-[calc(100vh-4rem)] w-64 shrink-0 border-r border-zinc-200 bg-white md:block">
       <div className="p-4">
         <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-zinc-400">
           Menu
         </p>
 
         <nav className="space-y-1">
-          {navigation.map((item) => {
+          {items.map((item) => {
             const active =
-              pathname === item.href ||
-              pathname.startsWith(`${item.href}/`);
+              pathname === item.href || pathname.startsWith(`${item.href}/`);
 
             return (
               <Link

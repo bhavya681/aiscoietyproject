@@ -161,11 +161,11 @@ export default function Home() {
                 </div>
 
                 <div className="mt-4 rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                  "How much maintenance do I have pending?"
+                  &ldquo;How much maintenance do I have pending?&rdquo;
                 </div>
 
                 <div className="mt-3 rounded-lg bg-indigo-50 px-4 py-3 text-sm text-indigo-800">
-                  You have ₹4,000 in pending maintenance.
+                  You currently have ₹4,000 in pending maintenance.
                 </div>
               </div>
             </div>

@@ -1,170 +1,110 @@
-import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+import { apiError, apiSuccess } from "@/app/lib/apiResponse";
+import { getAuthenticatedUser, isValidObjectId } from "@/app/lib/auth";
 import { connectDB } from "@/app/lib/mongodb";
 import Maintenance from "@/app/models/Maintenance";
 import User from "@/app/models/User";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    await connectDB();
-
-    const userHeader = request.headers.get("x-user");
-
-    if (!userHeader) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Authentication required.",
-        },
-        { status: 401 }
-      );
-    }
-
-    const userData = JSON.parse(userHeader);
-
-    // Only admin can create maintenance records
-    if (userData.role !== "admin") {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Admin access required.",
-        },
-        { status: 403 }
-      );
-    }
-
-    const {
-      userId,
-      amount,
-      dueDate,
-    } = await request.json();
-
-    if (!userId || !amount || !dueDate) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "userId, amount and dueDate are required.",
-        },
-        { status: 400 }
-      );
-    }
-
-    if (amount <= 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Amount must be greater than zero.",
-        },
-        { status: 400 }
-      );
-    }
-
-    // Check whether resident exists
-    const user = await User.findById(userId);
+    const user = getAuthenticatedUser(request);
 
     if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Resident not found.",
-        },
-        { status: 404 }
-      );
+      return apiError("Authentication required.", 401);
     }
 
-    // Prevent duplicate maintenance for the same resident/date
-    const existingMaintenance = await Maintenance.findOne({
-      user: userId,
-      dueDate: new Date(dueDate),
-    });
+    if (user.role !== "admin") {
+      return apiError("Admin access required.", 403);
+    }
 
-    if (existingMaintenance) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Maintenance already exists for this due date.",
-        },
-        { status: 409 }
-      );
+    const body = await request.json().catch(() => null);
+
+    if (!body || typeof body !== "object") {
+      return apiError("Invalid request body.", 400);
+    }
+
+    const { userId, amount, dueDate } = body as Record<string, unknown>;
+
+    if (typeof userId !== "string" || !userId) {
+      return apiError("userId is required.", 400);
+    }
+
+    if (!isValidObjectId(userId)) {
+      return apiError("Invalid resident id.", 400);
+    }
+
+    if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0) {
+      return apiError("Amount must be a number greater than zero.", 400);
+    }
+
+    if (typeof dueDate !== "string" || Number.isNaN(Date.parse(dueDate))) {
+      return apiError("A valid dueDate is required.", 400);
+    }
+
+    await connectDB();
+
+    const resident = await User.findById(userId).select("-password").lean();
+
+    if (!resident) {
+      return apiError("Resident not found.", 404);
+    }
+
+    const normalizedDueDate = new Date(dueDate);
+
+    const existing = await Maintenance.findOne({
+      userId,
+      dueDate: normalizedDueDate,
+    }).lean();
+
+    if (existing) {
+      return apiError("Maintenance already exists for this due date.", 409);
     }
 
     const maintenance = await Maintenance.create({
-      user: userId,
-      amount,
-      dueDate: new Date(dueDate),
+      userId,
+      // A newly raised bill starts fully outstanding.
+      monthlyAmount: amount,
+      pendingAmount: amount,
+      dueDate: normalizedDueDate,
       status: "pending",
     });
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Maintenance created successfully.",
-        maintenance,
-      },
-      { status: 201 }
+    return apiSuccess(
+      { maintenance },
+      "Maintenance created successfully.",
+      201
     );
   } catch (error) {
     console.error("Create maintenance error:", error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Internal server error.",
-      },
-      { status: 500 }
-    );
+    return apiError("Internal server error.", 500);
   }
 }
 
-export async function GET(request: Request) {
-    try {
-      await connectDB();
-  
-      const userHeader = request.headers.get("x-user");
-  
-      if (!userHeader) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: "Authentication required.",
-          },
-          { status: 401 }
-        );
-      }
-  
-      const userData = JSON.parse(userHeader);
-  
-      if (userData.role !== "admin") {
-        return NextResponse.json(
-          {
-            success: false,
-            message: "Admin access required.",
-          },
-          { status: 403 }
-        );
-      }
-  
-      const maintenance = await Maintenance.find()
-        .populate("userId", "-password")
-        .sort({
-          dueDate: -1,
-        });
-  
-      return NextResponse.json(
-        {
-          success: true,
-          maintenance,
-        },
-        { status: 200 }
-      );
-    } catch (error) {
-      console.error("Get all maintenance error:", error);
-  
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Internal server error.",
-        },
-        { status: 500 }
-      );
+export async function GET(request: NextRequest) {
+  try {
+    const user = getAuthenticatedUser(request);
+
+    if (!user) {
+      return apiError("Authentication required.", 401);
     }
+
+    if (user.role !== "admin") {
+      return apiError("Admin access required.", 403);
+    }
+
+    await connectDB();
+
+    const maintenance = await Maintenance.find()
+      .populate("userId", "name email flat address")
+      .sort({ dueDate: -1 })
+      .lean();
+
+    return apiSuccess({ maintenance }, "All maintenance fetched.");
+  } catch (error) {
+    console.error("Get all maintenance error:", error);
+
+    return apiError("Internal server error.", 500);
   }
+}

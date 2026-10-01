@@ -1,88 +1,71 @@
-import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+import { apiError, apiSuccess } from "@/app/lib/apiResponse";
+import {
+  getAuthenticatedUser,
+  isValidObjectId,
+  type AuthRole,
+} from "@/app/lib/auth";
 import { connectDB } from "@/app/lib/mongodb";
 import User from "@/app/models/User";
 
+const ROLES: AuthRole[] = ["admin", "resident"];
+
 export async function PUT(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectDB();
+    const user = getAuthenticatedUser(request);
 
-    const userHeader = request.headers.get("x-user");
-
-    if (!userHeader) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Authentication required.",
-        },
-        { status: 401 }
-      );
+    if (!user) {
+      return apiError("Authentication required.", 401);
     }
 
-    const userData = JSON.parse(userHeader);
-
-    if (userData.role !== "admin") {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Admin access required.",
-        },
-        { status: 403 }
-      );
+    if (user.role !== "admin") {
+      return apiError("Admin access required.", 403);
     }
 
     const { id } = await params;
 
-    const { role } = await request.json();
-
-    if (!["admin", "resident"].includes(role)) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Invalid role.",
-        },
-        { status: 400 }
-      );
+    if (!isValidObjectId(id)) {
+      return apiError("Invalid user id.", 400);
     }
 
-    const user = await User.findByIdAndUpdate(
-      id,
-      { role },
-      {
-        new: true,
-        runValidators: true,
-      }
-    ).select("-password");
+    const body = await request.json().catch(() => null);
 
-    if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "User not found.",
-        },
-        { status: 404 }
-      );
+    if (!body || typeof body !== "object") {
+      return apiError("Invalid request body.", 400);
     }
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: "User role updated successfully.",
-        user,
-      },
-      { status: 200 }
-    );
+    const { role } = body as Record<string, unknown>;
+
+    if (typeof role !== "string" || !ROLES.includes(role as AuthRole)) {
+      return apiError(`Invalid role. Allowed values: ${ROLES.join(", ")}.`, 400);
+    }
+
+    if (id === user.userId) {
+      // Stops an admin from accidentally removing their own admin access.
+      return apiError("You cannot change your own role.", 400);
+    }
+
+    await connectDB();
+
+    const updated = await User.findByIdAndUpdate(id, { role }, {
+      new: true,
+      runValidators: true,
+    })
+      .select("-password")
+      .lean();
+
+    if (!updated) {
+      return apiError("User not found.", 404);
+    }
+
+    return apiSuccess({ user: updated }, "User role updated successfully.");
   } catch (error) {
     console.error("Update role error:", error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Internal server error.",
-      },
-      { status: 500 }
-    );
+    return apiError("Internal server error.", 500);
   }
 }

@@ -1,64 +1,58 @@
-import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+import { apiError, apiSuccess } from "@/app/lib/apiResponse";
+import {
+  getAuthenticatedUser,
+  isValidObjectId,
+  TOKEN_COOKIE,
+} from "@/app/lib/auth";
 import { connectDB } from "@/app/lib/mongodb";
+import Invoice from "@/app/models/Invoice";
+import Maintenance from "@/app/models/Maintenance";
+import Payment from "@/app/models/Payment";
 import User from "@/app/models/User";
 
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
   try {
-    await connectDB();
-
-    const userHeader = request.headers.get("x-user");
-
-    if (!userHeader) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Authentication required.",
-        },
-        { status: 401 }
-      );
-    }
-
-    const userData = JSON.parse(userHeader);
-    const userId = userData.userId;
-
-    const user = await User.findByIdAndDelete(userId);
+    const user = getAuthenticatedUser(request);
 
     if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "User not found.",
-        },
-        { status: 404 }
-      );
+      return apiError("Authentication required.", 401);
     }
 
-    const response = NextResponse.json(
-      {
-        success: true,
-        message: "Account deleted successfully.",
-      },
-      { status: 200 }
-    );
+    if (!isValidObjectId(user.userId)) {
+      return apiError("User not found.", 404);
+    }
 
-    response.cookies.set("token", "", {
+    await connectDB();
+
+    const deletedUser = await User.findByIdAndDelete(user.userId);
+
+    if (!deletedUser) {
+      return apiError("User not found.", 404);
+    }
+
+    // Remove the account's dependent records so no orphans are left behind.
+    await Promise.all([
+      Maintenance.deleteMany({ userId: user.userId }),
+      Payment.deleteMany({ userId: user.userId }),
+      Invoice.deleteMany({ userId: user.userId }),
+    ]);
+
+    const response = apiSuccess({}, "Account deleted successfully.");
+
+    response.cookies.set(TOKEN_COOKIE, "", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.COOKIE_SECURE === "true",
       sameSite: "lax",
-      expires: new Date(0),
       path: "/",
+      expires: new Date(0),
     });
 
     return response;
   } catch (error) {
     console.error("Delete account error:", error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Internal server error.",
-      },
-      { status: 500 }
-    );
+    return apiError("Internal server error.", 500);
   }
 }

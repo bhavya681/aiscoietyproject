@@ -1,97 +1,76 @@
-import { NextResponse } from "next/server";
-import { connectDB } from "@/app/lib/mongodb";
-import Maintenance from "@/app/models/Maintenance";
+import type { NextRequest } from "next/server";
+
+import { apiError, apiSuccess } from "@/app/lib/apiResponse";
+import { getAuthenticatedUser, isValidObjectId } from "@/app/lib/auth";
+import {
+  isPaymentMethod,
+  PAYMENT_METHODS,
+  recordMaintenancePayment,
+} from "@/app/lib/maintenanceService";
 
 export async function POST(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectDB();
+    const user = getAuthenticatedUser(request);
 
-    const userHeader = request.headers.get("x-user");
-
-    if (!userHeader) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Authentication required.",
-        },
-        { status: 401 }
-      );
+    if (!user) {
+      return apiError("Authentication required.", 401);
     }
-
-    const userData = JSON.parse(userHeader);
 
     const { id } = await params;
 
-    const { paymentMethod } = await request.json();
+    if (!isValidObjectId(id)) {
+      return apiError("Invalid maintenance id.", 400);
+    }
 
-    const allowedMethods = [
-      "upi",
-      "bank_transfer",
-      "cash",
-      "other",
-    ];
+    const body = await request.json().catch(() => null);
 
-    if (!allowedMethods.includes(paymentMethod)) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Invalid payment method.",
-        },
-        { status: 400 }
+    if (!body || typeof body !== "object") {
+      return apiError("Invalid request body.", 400);
+    }
+
+    const { paymentMethod, confirmation } = body as Record<string, unknown>;
+
+    // Application-level confirmation gate. Paying money is a destructive
+    // action, so the request must explicitly acknowledge it. The AI assistant
+    // has to satisfy this same gate before it can reach a payment.
+    if (confirmation !== true) {
+      return apiError(
+        "Payment was not confirmed. Please confirm before paying.",
+        400
       );
     }
 
-    const maintenance = await Maintenance.findOne({
-      _id: id,
-      user: userData.userId,
+    if (!isPaymentMethod(paymentMethod)) {
+      return apiError(
+        `Invalid payment method. Allowed values: ${PAYMENT_METHODS.join(", ")}.`,
+        400
+      );
+    }
+
+    const result = await recordMaintenancePayment({
+      maintenanceId: id,
+      requesterId: user.userId,
+      requesterRole: user.role,
+      paymentMethod,
     });
 
-    if (!maintenance) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Maintenance record not found.",
-        },
-        { status: 404 }
-      );
+    if (!result.ok) {
+      return apiError(result.message, result.status);
     }
 
-    if (maintenance.status === "paid") {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "This maintenance has already been paid.",
-        },
-        { status: 409 }
-      );
-    }
-
-    maintenance.status = "paid";
-    maintenance.paidAt = new Date();
-    maintenance.paymentMethod = paymentMethod;
-
-    await maintenance.save();
-
-    return NextResponse.json(
+    return apiSuccess(
       {
-        success: true,
-        message: "Maintenance marked as paid.",
-        maintenance,
+        amount: result.amount,
+        transactionId: result.transactionId,
       },
-      { status: 200 }
+      `Payment of ₹${result.amount.toLocaleString("en-IN")} recorded successfully.`
     );
   } catch (error) {
     console.error("Payment error:", error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Internal server error.",
-      },
-      { status: 500 }
-    );
+    return apiError("Internal server error.", 500);
   }
 }

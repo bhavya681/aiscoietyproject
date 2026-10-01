@@ -1,61 +1,51 @@
-import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+import { apiError, apiSuccess } from "@/app/lib/apiResponse";
+import { getAuthenticatedUser, isValidObjectId } from "@/app/lib/auth";
 import { connectDB } from "@/app/lib/mongodb";
+import Invoice from "@/app/models/Invoice";
 import Maintenance from "@/app/models/Maintenance";
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectDB();
+    const user = getAuthenticatedUser(request);
 
-    const userHeader = request.headers.get("x-user");
-
-    if (!userHeader) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Authentication required.",
-        },
-        { status: 401 }
-      );
+    if (!user) {
+      return apiError("Authentication required.", 401);
     }
-
-    const userData = JSON.parse(userHeader);
 
     const { id } = await params;
 
-    const invoice = await Maintenance.findOne({
-      _id: id,
-      user: userData.userId,
-    });
-
-    if (!invoice) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Invoice not found.",
-        },
-        { status: 404 }
-      );
+    if (!isValidObjectId(id)) {
+      return apiError("Invalid maintenance id.", 400);
     }
 
-    return NextResponse.json(
-      {
-        success: true,
-        invoice,
-      },
-      { status: 200 }
-    );
+    await connectDB();
+
+    // Residents may only read their own records; admins may read any record.
+    const ownerFilter =
+      user.role === "admin" ? { _id: id } : { _id: id, userId: user.userId };
+
+    const maintenance = await Maintenance.findOne(ownerFilter).lean();
+
+    if (!maintenance) {
+      return apiError("Invoice not found.", 404);
+    }
+
+    // The formal invoice document is optional: many maintenance rows are
+    // created before the society issues the invoice for that cycle.
+    const invoice = await Invoice.findOne({
+      maintenanceId: maintenance._id,
+      ...(user.role === "admin" ? {} : { userId: user.userId }),
+    }).lean();
+
+    return apiSuccess({ invoice, maintenance }, "Invoice fetched.");
   } catch (error) {
     console.error("Invoice error:", error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Internal server error.",
-      },
-      { status: 500 }
-    );
+    return apiError("Internal server error.", 500);
   }
 }

@@ -1,57 +1,33 @@
-import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+import { apiError, apiSuccess } from "@/app/lib/apiResponse";
+import { getAuthenticatedUser } from "@/app/lib/auth";
 import { connectDB } from "@/app/lib/mongodb";
 import User from "@/app/models/User";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    const user = getAuthenticatedUser(request);
+
+    if (!user) {
+      return apiError("Authentication required.", 401);
+    }
+
+    if (user.role !== "admin") {
+      return apiError("Admin access required.", 403);
+    }
+
     await connectDB();
-
-    const userHeader = request.headers.get("x-user");
-
-    if (!userHeader) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Authentication required.",
-        },
-        { status: 401 }
-      );
-    }
-
-    const userData = JSON.parse(userHeader);
-
-    if (userData.role !== "admin") {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Admin access required.",
-        },
-        { status: 403 }
-      );
-    }
 
     const users = await User.find()
       .select("-password")
-      .sort({
-        createdAt: -1,
-      });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    return NextResponse.json(
-      {
-        success: true,
-        users,
-      },
-      { status: 200 }
-    );
+    return apiSuccess({ users }, "Users fetched.");
   } catch (error) {
     console.error("Admin users error:", error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Internal server error.",
-      },
-      { status: 500 }
-    );
+    return apiError("Internal server error.", 500);
   }
 }

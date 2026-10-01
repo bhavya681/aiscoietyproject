@@ -3,246 +3,238 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import AppShell from "../components/layout/AppShell";
+import MaintenanceCard from "../components/dashboard/MaintenanceCard";
+import StatCard from "../components/dashboard/StatCard";
+import { apiFetch } from "@/app/lib/api";
+import {
+  formatCurrency,
+  formatDate,
+  type HistoryResponse,
+  type PendingResponse,
+  type Profile,
+  type ProfileResponse,
+} from "@/app/lib/types";
+
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [pending, setPending] = useState<PendingResponse | null>(null);
+  const [history, setHistory] = useState<HistoryResponse["history"]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    async function loadProfile() {
+    let cancelled = false;
+
+    async function load() {
       try {
-        const token = localStorage.getItem("token");
+        const [profileData, pendingData, historyData] = await Promise.all([
+          apiFetch<ProfileResponse>("/users/profile"),
+          apiFetch<PendingResponse>("/maintenance/pending"),
+          apiFetch<HistoryResponse>("/maintenance/history"),
+        ]);
 
-        const response = await fetch("/api/users/profile", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          setUser(data.user);
+        if (cancelled) {
+          return;
         }
-      } catch (error) {
-        console.error(error);
+
+        setProfile(profileData.profile);
+        setPending(pendingData);
+        setHistory(historyData.history);
+      } catch (caught) {
+        if (!cancelled) {
+          setError(
+            caught instanceof Error
+              ? caught.message
+              : "Could not load your dashboard."
+          );
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
-    loadProfile();
+    load();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
+  const paidRecords = history.filter((record) => record.status === "paid");
+  const totalPaid = paidRecords.reduce(
+    (total, record) => total + record.monthlyAmount,
+    0
+  );
+  const lastPayment = paidRecords[0] ?? null;
+
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <p className="text-sm text-slate-500">Overview</p>
+    <AppShell>
+      <div className="space-y-8">
+        <div>
+          <p className="text-sm text-zinc-500">Overview</p>
 
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">
-          {loading ? "Welcome back" : `Welcome back, ${user?.name}`}
-        </h1>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-zinc-950">
+            {loading
+              ? "Welcome back"
+              : `Welcome back, ${profile?.name ?? "Resident"}`}
+          </h1>
 
-        <p className="mt-2 text-sm text-slate-500">
-          Here's what's happening with your society account.
-        </p>
-      </div>
+          <p className="mt-2 text-sm text-zinc-500">
+            {profile
+              ? `${profile.email} · ${profile.role === "admin" ? "Admin" : "Resident"}`
+              : "Here's what's happening with your society account."}
+          </p>
+        </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <DashboardStat
-          title="Pending Maintenance"
-          value="₹4,000"
-          subtitle="Due on 10th"
-          icon="₹"
-        />
+        {error && (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
-        <DashboardStat
-          title="This Month"
-          value="₹4,000"
-          subtitle="Maintenance"
-          icon="◷"
-        />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            title="Pending Maintenance"
+            value={formatCurrency(pending?.totalPending ?? 0)}
+            description={
+              pending?.nextDueDate
+                ? `Due ${formatDate(pending.nextDueDate)}`
+                : "Nothing due"
+            }
+            icon="₹"
+          />
 
-        <DashboardStat
-          title="Total Paid"
-          value="₹12,000"
-          subtitle="This year"
-          icon="✓"
-        />
+          <StatCard
+            title="Monthly Amount"
+            value={formatCurrency(pending?.monthlyAmount ?? 0)}
+            description="Per flat, per month"
+            icon="◷"
+          />
 
-        <DashboardStat
-          title="Account"
-          value="Active"
-          subtitle="All services available"
-          icon="●"
-        />
-      </div>
+          <StatCard
+            title="Total Paid"
+            value={formatCurrency(totalPaid)}
+            description={`${paidRecords.length} payment${paidRecords.length === 1 ? "" : "s"} recorded`}
+            icon="✓"
+          />
 
-      {/* Main grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Maintenance */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 lg:col-span-2">
+          <StatCard
+            title="Last Payment"
+            value={lastPayment ? formatCurrency(lastPayment.monthlyAmount) : "—"}
+            description={
+              lastPayment
+                ? `${formatDate(lastPayment.paidAt ?? lastPayment.dueDate)} via ${
+                    lastPayment.paymentMethod?.replace("_", " ") ?? "—"
+                  }`
+                : "No payments yet"
+            }
+            icon="●"
+          />
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <MaintenanceCard
+              pendingAmount={pending?.totalPending ?? 0}
+              monthlyAmount={pending?.monthlyAmount ?? 0}
+              dueDate={
+                pending?.nextDueDate
+                  ? formatDate(pending.nextDueDate)
+                  : "No pending due date"
+              }
+            />
+          </div>
+
+          <div className="rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-700 p-6 text-white">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 font-bold">
+              AI
+            </div>
+
+            <h2 className="mt-5 text-xl font-bold">Need help?</h2>
+
+            <p className="mt-2 text-sm leading-6 text-indigo-100">
+              Ask SocietyAI about your maintenance, payments, invoices or
+              society policies.
+            </p>
+
+            <Link
+              href="/ai"
+              className="mt-6 inline-flex rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50"
+            >
+              Open Assistant →
+            </Link>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-zinc-200 bg-white p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-semibold text-slate-950">
-                Maintenance
-              </h2>
-
-              <p className="mt-1 text-sm text-slate-500">
-                Your current maintenance status
+              <h2 className="font-semibold">Recent Activity</h2>
+              <p className="mt-1 text-sm text-zinc-500">
+                Your latest maintenance activity
               </p>
             </div>
 
             <Link
-              href="/maintenance"
-              className="text-sm font-semibold text-indigo-600 hover:text-indigo-700"
+              href="/maintenance/history"
+              className="text-sm font-semibold text-indigo-600"
             >
-              View details →
+              View history →
             </Link>
           </div>
 
-          <div className="mt-6 rounded-xl bg-slate-50 p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-500">Pending amount</p>
+          <div className="mt-6 divide-y divide-zinc-100">
+            {history.length === 0 && (
+              <p className="py-4 text-sm text-zinc-500">
+                No maintenance records yet.
+              </p>
+            )}
 
-                <p className="mt-1 text-3xl font-bold">₹4,000</p>
+            {history.slice(0, 5).map((record) => (
+              <div
+                key={record._id}
+                className="flex items-center justify-between py-4"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-sm text-indigo-600">
+                    {record.status === "paid" ? "✓" : "!"}
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium">
+                      Maintenance{" "}
+                      {record.status === "paid" ? "payment" : "due"}
+                    </p>
+                    <p className="text-xs text-zinc-500">
+                      Due {formatDate(record.dueDate)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <p className="text-sm font-semibold">
+                    {formatCurrency(
+                      record.status === "paid"
+                        ? record.monthlyAmount
+                        : record.pendingAmount
+                    )}
+                  </p>
+
+                  <Link
+                    href={`/maintenance/invoice/${record._id}`}
+                    className="text-xs text-indigo-600"
+                  >
+                    View invoice
+                  </Link>
+                </div>
               </div>
-
-              <span className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-700">
-                Pending
-              </span>
-            </div>
-
-            <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-200">
-              <div className="h-full w-2/3 rounded-full bg-indigo-600" />
-            </div>
-
-            <div className="mt-2 flex justify-between text-xs text-slate-500">
-              <span>Current cycle</span>
-              <span>Due 10th</span>
-            </div>
+            ))}
           </div>
         </div>
-
-        {/* AI */}
-        <div className="rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-700 p-6 text-white">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 font-bold">
-            AI
-          </div>
-
-          <h2 className="mt-5 text-xl font-bold">
-            Need help?
-          </h2>
-
-          <p className="mt-2 text-sm leading-6 text-indigo-100">
-            Ask SocietyAI about your maintenance, payments, invoices or
-            society policies.
-          </p>
-
-          <Link
-            href="/ai"
-            className="mt-6 inline-flex rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50"
-          >
-            Open Assistant →
-          </Link>
-        </div>
       </div>
-
-      {/* Recent activity */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="font-semibold">Recent Activity</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Your latest maintenance activity
-            </p>
-          </div>
-
-          <Link
-            href="/maintenance/history"
-            className="text-sm font-semibold text-indigo-600"
-          >
-            View history →
-          </Link>
-        </div>
-
-        <div className="mt-6 divide-y divide-slate-100">
-          <Activity
-            title="Maintenance invoice generated"
-            date="Today"
-            amount="₹4,000"
-          />
-
-          <Activity
-            title="Previous maintenance payment"
-            date="Aug 10"
-            amount="₹4,000"
-          />
-
-          <Activity
-            title="Maintenance payment"
-            date="Jul 10"
-            amount="₹4,000"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DashboardStat({
-  title,
-  value,
-  subtitle,
-  icon,
-}: {
-  title: string;
-  value: string;
-  subtitle: string;
-  icon: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">{title}</p>
-
-        <span className="text-sm font-bold text-indigo-600">{icon}</span>
-      </div>
-
-      <p className="mt-3 text-2xl font-bold text-slate-950">
-        {value}
-      </p>
-
-      <p className="mt-1 text-xs text-slate-500">{subtitle}</p>
-    </div>
-  );
-}
-
-function Activity({
-  title,
-  date,
-  amount,
-}: {
-  title: string;
-  date: string;
-  amount: string;
-}) {
-  return (
-    <div className="flex items-center justify-between py-4">
-      <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-sm text-indigo-600">
-          ✓
-        </div>
-
-        <div>
-          <p className="text-sm font-medium">{title}</p>
-          <p className="text-xs text-slate-500">{date}</p>
-        </div>
-      </div>
-
-      <p className="text-sm font-semibold">{amount}</p>
-    </div>
+    </AppShell>
   );
 }

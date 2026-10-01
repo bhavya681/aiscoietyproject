@@ -1,29 +1,37 @@
-import { NextResponse } from "next/server";
+import { isValidObjectId, getAuthenticatedUser } from "@/app/lib/auth";
+import { apiError, apiSuccess } from "@/app/lib/apiResponse";
 import { connectDB } from "@/app/lib/mongodb";
 import User from "@/app/models/User";
+import type { NextRequest } from "next/server";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    // Identity always comes from the verified JWT, never from the client.
+    const user = getAuthenticatedUser(request);
+
+    if (!user) {
+      return apiError("Authentication required.", 401);
+    }
+
+    if (!isValidObjectId(user.userId)) {
+      return apiError("User not found.", 404);
+    }
+
     await connectDB();
-    const userHeader = request.headers.get('x-user');
-    if (!userHeader) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Authentication required.",
-        },
-        { status: 401 }
-      );
-    }
-    const userData = JSON.parse(userHeader);
-    const userId = userData.userId;
-    const profile = await User.findById(userId).select("-password");
+
+    const profile = await User.findById(user.userId)
+      .select("-password")
+      .lean();
+
     if (!profile) {
-      return NextResponse.json({ success: false, message: "User Not Exists" }, { status: 404 })
+      // Token is valid but the account was deleted.
+      return apiError("User not found.", 404);
     }
-    return NextResponse.json({ success: true, profile, message: "fetched profile" }, { status: 200 })
+
+    return apiSuccess({ profile }, "Profile fetched.");
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ success: false, message: 'Internal Server Error' }, { status: 500 })
+    console.error("Profile error:", error);
+
+    return apiError("Internal server error.", 500);
   }
 }

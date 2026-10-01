@@ -1,33 +1,93 @@
-import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import type { NextRequest } from "next/server";
+
+import { apiError, apiSuccess } from "@/app/lib/apiResponse";
 import { connectDB } from "@/app/lib/mongodb";
 import User from "@/app/models/User";
-import bcrypt from 'bcryptjs';
 
-export async function POST(request: Request) {
-await connectDB();
-    try {
-        const { name, email, password, phone, address, role } = await request.json();
-        if (!name || !email || !password || !phone || !address || !role) {
-            return NextResponse.json({ success: false, message: "All Fields are required" }, { status: 400 })
-        }
-        if (!email.includes("@")) {
-            return NextResponse.json({ success: false, message: "Enter Valid Email Address" }, { status: 400 })
-        }
-        if(password.length<8){
-            return NextResponse.json({success:false,message:"Password should strong"},{status:400})
-        }
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return NextResponse.json({ success: true, message: "User Already Exists,Kindly Login" }, { status: 409 })
-        }
-        const hashword=await bcrypt.hash(password,8);
-        const newUser = await User.create({
-            name:name, email:email, password:hashword, phone:phone, address:address, role:role
-        });
-        return NextResponse.json({ success: true, user: { name:newUser.name, email:newUser.email,
-             phone:newUser.phone, address:newUser.address, role:newUser.role }, message: 'New user succesfully created' }, { status: 201 })
-    } catch (error) {
-        console.error('error:', error);
-        return NextResponse.json({ success: false, message: "Internal Server Error" }, { status: 500 })
+const BCRYPT_SALT_ROUNDS = 10;
+const MIN_PASSWORD_LENGTH = 8;
+
+export async function POST(request: NextRequest) {
+  try {
+    await connectDB();
+
+    const body = await request.json().catch(() => null);
+
+    if (!body || typeof body !== "object") {
+      return apiError("Invalid request body.", 400);
     }
+
+    const { name, email, password, phone, address } = body as Record<
+      string,
+      unknown
+    >;
+
+    if (
+      typeof name !== "string" ||
+      typeof email !== "string" ||
+      typeof password !== "string" ||
+      typeof phone !== "string" ||
+      typeof address !== "string" ||
+      !name.trim() ||
+      !email.trim() ||
+      !password ||
+      !phone.trim() ||
+      !address.trim()
+    ) {
+      return apiError("All fields are required.", 400);
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      return apiError("Enter a valid email address.", 400);
+    }
+
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      return apiError(
+        `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
+        400
+      );
+    }
+
+    const existingUser = await User.findOne({ email: normalizedEmail });
+
+    if (existingUser) {
+      return apiError("User already exists. Please log in.", 409);
+    }
+
+    // `role` is intentionally NOT taken from the request body. Allowing the
+    // client to pick its own role would be a privilege escalation hole.
+    // Admins are created by a bootstrap script or promoted by an existing admin.
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+
+    const user = await User.create({
+      name: name.trim(),
+      email: normalizedEmail,
+      password: hashedPassword,
+      phone: phone.trim(),
+      address: address.trim(),
+      role: "resident",
+    });
+
+    return apiSuccess(
+      {
+        user: {
+          id: user._id.toString(),
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          address: user.address,
+          role: user.role,
+        },
+      },
+      "Account created successfully. Please log in.",
+      201
+    );
+  } catch (error) {
+    console.error("Signup error:", error);
+
+    return apiError("Internal server error.", 500);
+  }
 }

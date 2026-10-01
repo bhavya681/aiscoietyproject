@@ -1,78 +1,56 @@
-import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+import { apiError, apiSuccess } from "@/app/lib/apiResponse";
+import { getAuthenticatedUser, isValidObjectId } from "@/app/lib/auth";
 import { connectDB } from "@/app/lib/mongodb";
+import Invoice from "@/app/models/Invoice";
+import Maintenance from "@/app/models/Maintenance";
+import Payment from "@/app/models/Payment";
 import User from "@/app/models/User";
 
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectDB();
+    const user = getAuthenticatedUser(request);
 
-    const userHeader = request.headers.get("x-user");
-
-    if (!userHeader) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Authentication required.",
-        },
-        { status: 401 }
-      );
+    if (!user) {
+      return apiError("Authentication required.", 401);
     }
 
-    const userData = JSON.parse(userHeader);
-
-    if (userData.role !== "admin") {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Admin access required.",
-        },
-        { status: 403 }
-      );
+    if (user.role !== "admin") {
+      return apiError("Admin access required.", 403);
     }
 
     const { id } = await params;
 
-    if (id === userData.userId) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Admin cannot delete their own account from this endpoint.",
-        },
-        { status: 400 }
-      );
+    if (!isValidObjectId(id)) {
+      return apiError("Invalid user id.", 400);
     }
 
-    const user = await User.findByIdAndDelete(id);
-
-    if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "User not found.",
-        },
-        { status: 404 }
-      );
+    if (id === user.userId) {
+      return apiError("Admin cannot delete their own account here.", 400);
     }
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: "User deleted successfully.",
-      },
-      { status: 200 }
-    );
+    await connectDB();
+
+    const deleted = await User.findByIdAndDelete(id).select("_id").lean();
+
+    if (!deleted) {
+      return apiError("User not found.", 404);
+    }
+
+    await Promise.all([
+      Maintenance.deleteMany({ userId: id }),
+      Payment.deleteMany({ userId: id }),
+      Invoice.deleteMany({ userId: id }),
+    ]);
+
+    return apiSuccess({}, "User deleted successfully.");
   } catch (error) {
     console.error("Admin delete user error:", error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Internal server error.",
-      },
-      { status: 500 }
-    );
+    return apiError("Internal server error.", 500);
   }
 }

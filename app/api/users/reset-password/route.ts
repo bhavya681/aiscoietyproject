@@ -1,101 +1,82 @@
-import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import type { NextRequest } from "next/server";
+
+import { apiError, apiSuccess } from "@/app/lib/apiResponse";
+import { getAuthenticatedUser, isValidObjectId } from "@/app/lib/auth";
 import { connectDB } from "@/app/lib/mongodb";
 import User from "@/app/models/User";
-import bcrypt from "bcryptjs";
 
-export async function PUT(request: Request) {
+const BCRYPT_SALT_ROUNDS = 10;
+const MIN_PASSWORD_LENGTH = 8;
+
+/**
+ * Authenticated password change.
+ *
+ * This project has no outbound email service, so instead of a token-based
+ * "forgot password" flow the signed-in resident must prove they know the
+ * current password before a new one is accepted. That keeps the endpoint
+ * simple and removes any need to store or email reset tokens.
+ */
+export async function PUT(request: NextRequest) {
   try {
-    await connectDB();
-
-    const userHeader = request.headers.get("x-user");
-
-    if (!userHeader) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Authentication required.",
-        },
-        { status: 401 }
-      );
-    }
-
-    const userData = JSON.parse(userHeader);
-    const userId = userData.userId;
-
-    const {
-      currentPassword,
-      newPassword,
-    } = await request.json();
-
-    if (!currentPassword || !newPassword) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Current password and new password are required.",
-        },
-        { status: 400 }
-      );
-    }
-
-    if (newPassword.length < 8) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "New password must contain at least 8 characters.",
-        },
-        { status: 400 }
-      );
-    }
-
-    const user = await User.findById(userId);
+    const user = getAuthenticatedUser(request);
 
     if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "User not found.",
-        },
-        { status: 404 }
+      return apiError("Authentication required.", 401);
+    }
+
+    if (!isValidObjectId(user.userId)) {
+      return apiError("User not found.", 404);
+    }
+
+    const body = await request.json().catch(() => null);
+
+    if (!body || typeof body !== "object") {
+      return apiError("Invalid request body.", 400);
+    }
+
+    const { currentPassword, newPassword } = body as Record<string, unknown>;
+
+    if (typeof currentPassword !== "string" || !currentPassword) {
+      return apiError("Current password is required.", 400);
+    }
+
+    if (typeof newPassword !== "string" || !newPassword) {
+      return apiError("New password is required.", 400);
+    }
+
+    if (newPassword.length < MIN_PASSWORD_LENGTH) {
+      return apiError(
+        `New password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
+        400
       );
     }
 
-    const passwordMatch = await bcrypt.compare(
+    await connectDB();
+
+    const account = await User.findById(user.userId);
+
+    if (!account) {
+      return apiError("User not found.", 404);
+    }
+
+    const passwordMatches = await bcrypt.compare(
       currentPassword,
-      user.password
+      account.password
     );
 
-    if (!passwordMatch) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Current password is incorrect.",
-        },
-        { status: 401 }
-      );
+    if (!passwordMatches) {
+      return apiError("Current password is incorrect.", 401);
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 8);
+    account.password = await bcrypt.hash(newPassword, BCRYPT_SALT_ROUNDS);
 
-    user.password = hashedPassword;
+    await account.save();
 
-    await user.save();
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Password updated successfully.",
-      },
-      { status: 200 }
-    );
+    return apiSuccess({}, "Password updated successfully.");
   } catch (error) {
     console.error("Reset password error:", error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Internal server error.",
-      },
-      { status: 500 }
-    );
+    return apiError("Internal server error.", 500);
   }
 }

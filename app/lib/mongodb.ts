@@ -1,17 +1,39 @@
+import dns from "node:dns";
 import mongoose from "mongoose";
 
-export async function connectDB() {
-    const MONGO_DB_URI = process.env.MONGODB_URI;
-    if (!MONGO_DB_URI) {
+function mongoUri(): string {
+    const uri = process.env.MONGODB_URI;
+
+    if (!uri) {
         throw new Error("MONGODB_URI is not defined");
     }
-    try {
-        const connect = await mongoose.connect(MONGO_DB_URI);
-        console.log('Mongodb Connected')
-        return connect
-    } catch (error) {
-        console.error("MongoDB connection failed:", error);
-        throw error;
+
+    return uri;
+}
+
+// This machine's default resolver cannot look up the Atlas SRV records, so
+// point Node at public resolvers before the driver resolves the URI.
+const dnsServers = process.env.DNS_SERVERS?.split(",")
+    .map((server) => server.trim())
+    .filter(Boolean);
+
+if (dnsServers?.length) {
+    dns.setServers(dnsServers);
+}
+
+let connection: Promise<typeof mongoose> | undefined;
+
+export async function connectDB() {
+    if (mongoose.connection.readyState === 1) {
+        return mongoose.connection;
     }
 
+    connection ??= mongoose.connect(mongoUri()).catch((error) => {
+        connection = undefined;
+
+        throw error;
+    });
+
+    return connection;
 }
+    

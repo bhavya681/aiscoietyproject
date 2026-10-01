@@ -1,56 +1,52 @@
-import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+import { apiError, apiSuccess } from "@/app/lib/apiResponse";
+import { getAuthenticatedUser, isValidObjectId } from "@/app/lib/auth";
 import { connectDB } from "@/app/lib/mongodb";
 import Maintenance from "@/app/models/Maintenance";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    await connectDB();
+    // The owner is taken from the JWT, so a resident can never query
+    // somebody else's maintenance by passing a different id.
+    const user = getAuthenticatedUser(request);
 
-    const userHeader = request.headers.get("x-user");
-
-    if (!userHeader) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Authentication required.",
-        },
-        { status: 401 }
-      );
+    if (!user) {
+      return apiError("Authentication required.", 401);
     }
 
-    const userData = JSON.parse(userHeader);
+    if (!isValidObjectId(user.userId)) {
+      return apiError("User not found.", 404);
+    }
+
+    await connectDB();
 
     const maintenance = await Maintenance.find({
-      user: userData.userId,
-      status: {
-        $in: ["pending", "overdue"],
-      },
-    }).sort({
-      dueDate: 1,
-    });
+      userId: user.userId,
+      status: { $in: ["pending", "overdue"] },
+    })
+      .sort({ dueDate: 1 })
+      .lean();
 
     const totalPending = maintenance.reduce(
-      (total, item) => total + item.amount,
+      (total, record) => total + record.pendingAmount,
       0
     );
 
-    return NextResponse.json(
+    const nextDue = maintenance[0]?.dueDate ?? null;
+
+    return apiSuccess(
       {
-        success: true,
         totalPending,
+        monthlyAmount: maintenance[0]?.monthlyAmount ?? 0,
+        nextDueDate: nextDue,
         maintenance,
       },
-      { status: 200 }
+      "Pending maintenance fetched."
     );
   } catch (error) {
     console.error("Pending maintenance error:", error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Internal server error.",
-      },
-      { status: 500 }
-    );
+    return apiError("Internal server error.", 500);
   }
 }
