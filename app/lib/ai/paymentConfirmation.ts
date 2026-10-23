@@ -150,6 +150,6 @@ export async function handlePaymentConfirmation(options: {
         "en-IN"
       )} was paid via ${action.paymentMethod.replace("_", " ")} ` +
         `(transaction ${result.transactionId}). Your maintenance for that cycle is now marked paid.`
-    ),
+    ,200),
   };
 }
