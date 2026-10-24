@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       .sort({ createdAt: -1 })
       .lean();
 
-    return apiSuccess({ users }, "Users fetched.");
+    return apiSuccess({ users }, "Users fetched.", 200);
   } catch (error) {
     console.error("Admin users error:", error);
 

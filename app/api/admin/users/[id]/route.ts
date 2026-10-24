@@ -47,7 +47,7 @@ export async function DELETE(
       Invoice.deleteMany({ userId: id }),
     ]);
 
-    return apiSuccess({}, "User deleted successfully.");
+    return apiSuccess({}, "User deleted successfully.", 200);
   } catch (error) {
     console.error("Admin delete user error:", error);
 

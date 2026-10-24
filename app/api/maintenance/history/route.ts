@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       .sort({ createdAt: -1 })
       .lean();
 
-    return apiSuccess({ history }, "Maintenance history fetched.");
+    return apiSuccess({ history }, "Maintenance history fetched.", 200);
   } catch (error) {
     console.error("Maintenance history error:", error);
 

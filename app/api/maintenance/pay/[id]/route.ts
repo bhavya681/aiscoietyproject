@@ -66,7 +66,8 @@ export async function POST(
         amount: result.amount,
         transactionId: result.transactionId,
       },
-      `Payment of ₹${result.amount.toLocaleString("en-IN")} recorded successfully.`
+      `Payment of ₹${result.amount.toLocaleString("en-IN")} recorded successfully.`,
+      200
     );
   } catch (error) {
     console.error("Payment error:", error);

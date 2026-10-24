@@ -42,7 +42,8 @@ export async function GET(request: NextRequest) {
         nextDueDate: nextDue,
         maintenance,
       },
-      "Pending maintenance fetched."
+      "Pending maintenance fetched.",
+      200
     );
   } catch (error) {
     console.error("Pending maintenance error:", error);

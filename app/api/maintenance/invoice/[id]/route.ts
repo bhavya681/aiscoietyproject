@@ -42,7 +42,7 @@ export async function GET(
       ...(user.role === "admin" ? {} : { userId: user.userId }),
     }).lean();
 
-    return apiSuccess({ invoice, maintenance }, "Invoice fetched.");
+    return apiSuccess({ invoice, maintenance }, "Invoice fetched.", 200);
   } catch (error) {
     console.error("Invoice error:", error);
 
