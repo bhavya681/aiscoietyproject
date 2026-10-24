@@ -238,12 +238,12 @@ export default function MaintenancePage() {
                   </p>
                 </div>
                 <span className="text-xs font-mono px-2 py-0.5 rounded bg-muted">
-                  {data?.pendingRecords?.length ?? 0} Pending
+                  {data?.maintenance?.length ?? 0} Pending
                 </span>
               </div>
 
               <div className="mt-4 divide-y divide-border/60">
-                {!data?.pendingRecords?.length && (
+                {!data?.maintenance?.length && (
                   <div className="py-12 text-center">
                     <CheckCircle2 className="mx-auto h-8 w-8 text-emerald-500" />
                     <p className="mt-3 text-sm font-semibold text-foreground">
@@ -255,7 +255,7 @@ export default function MaintenancePage() {
                   </div>
                 )}
 
-                {data?.pendingRecords?.map((record) => (
+                {data?.maintenance?.map((record: any) => (
                   <div
                     key={record._id}
                     className="py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors hover:bg-muted/10 -mx-2 px-2 rounded-xl"
