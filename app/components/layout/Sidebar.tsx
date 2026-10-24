@@ -13,8 +13,8 @@ import {
   ChevronLeft,
   X,
   Building2,
-  LogOut,
-  LayoutTemplate,
+  Sparkles,
+  ArrowUpRight,
 } from "lucide-react";
 
 import type { Role } from "@/app/lib/types";
@@ -24,7 +24,7 @@ const NAVIGATION = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Maintenance", href: "/maintenance", icon: Wrench },
   { name: "Payment History", href: "/maintenance/history", icon: History },
-  { name: "AI Assistant", href: "/ai", icon: Bot },
+  { name: "AI Assistant", href: "/ai", icon: Bot, highlight: true },
   { name: "Profile", href: "/profile", icon: User },
 ] as const;
 
@@ -55,19 +55,25 @@ export default function Sidebar({ role, onCollapse }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "hidden shrink-0 flex-col border-r border-border bg-card transition-all duration-300 ease-in-out md:flex",
-        collapsed ? "w-16" : "w-64"
+        "hidden shrink-0 flex-col border-r border-border/80 bg-card/60 backdrop-blur-xl transition-all duration-300 ease-in-out md:flex",
+        collapsed ? "w-18" : "w-64"
       )}
     >
-      <div className="flex h-16 items-center border-b border-border px-4">
-        <Link href="/dashboard" className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Building2 className="h-5 w-5" />
+      {/* Brand & collapse trigger */}
+      <div className="flex h-16 items-center justify-between border-b border-border/60 px-4">
+        <Link href="/dashboard" className="flex items-center gap-2.5 overflow-hidden">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#315CF5] text-white shadow-sm shadow-[#315CF5]/20">
+            <Building2 className="h-4.5 w-4.5" />
           </div>
           {!collapsed && (
-            <span className="text-lg font-bold tracking-tight">
-              SocietyAI
-            </span>
+            <div className="flex flex-col">
+              <span className="text-base font-semibold tracking-tight text-foreground leading-none">
+                Society<span className="text-[#315CF5]">AI</span>
+              </span>
+              <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mt-1">
+                Workspace
+              </span>
+            </div>
           )}
         </Link>
 
@@ -75,7 +81,7 @@ export default function Sidebar({ role, onCollapse }: SidebarProps) {
           type="button"
           onClick={toggle}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="ml-auto flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         >
           <ChevronLeft
             className={cn(
@@ -86,11 +92,13 @@ export default function Sidebar({ role, onCollapse }: SidebarProps) {
         </button>
       </div>
 
-      <nav className="flex-1 space-y-1 p-3">
+      {/* Main navigation list */}
+      <nav className="flex-1 space-y-1.5 p-3">
         {items.map((item) => {
           const Icon = item.icon;
           const active =
-            pathname === item.href || pathname.startsWith(`${item.href}/`);
+            pathname === item.href ||
+            (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
 
           return (
             <Link
@@ -98,29 +106,46 @@ export default function Sidebar({ role, onCollapse }: SidebarProps) {
               href={item.href}
               title={collapsed ? item.name : undefined}
               className={cn(
-                "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
                 active
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                  ? "bg-[#315CF5]/10 text-[#315CF5] dark:text-[#819eff] font-semibold"
+                  : "text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground"
               )}
             >
-              <Icon className="h-5 w-5 shrink-0" />
-              {!collapsed && <span>{item.name}</span>}
+              {active && (
+                <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-[#315CF5]" />
+              )}
+              <Icon className={cn("h-4.5 w-4.5 shrink-0 transition-transform duration-200 group-hover:scale-105", active && "text-[#315CF5]")} />
+              {!collapsed && (
+                <div className="flex flex-1 items-center justify-between">
+                  <span>{item.name}</span>
+                  {"highlight" in item && item.highlight && (
+                    <span className="flex h-2 w-2 rounded-full bg-[#315CF5] animate-pulse" />
+                  )}
+                </div>
+              )}
             </Link>
           );
         })}
       </nav>
 
-      <div className="border-t border-border p-3">
-        <Link
-          href="/profile"
-          title={collapsed ? "Profile" : undefined}
-          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-        >
-          <User className="h-5 w-5 shrink-0" />
-          {!collapsed && <span>Account</span>}
-        </Link>
-      </div>
+      {/* Bottom shortcut */}
+      {!collapsed && (
+        <div className="p-3 border-t border-border/60">
+          <Link
+            href="/ai"
+            className="flex flex-col gap-2 rounded-xl border border-[#315CF5]/20 bg-[#315CF5]/5 p-3 hover:bg-[#315CF5]/10 transition-colors"
+          >
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#315CF5]">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Ask SocietyAI</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-snug">
+              Instant answers on maintenance &amp; dues.
+            </p>
+          </Link>
+        </div>
+      )}
     </aside>
   );
 }
@@ -154,36 +179,41 @@ export function MobileSidebar({
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-card shadow-xl transition-transform duration-300 ease-in-out md:hidden",
+          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-border bg-card shadow-2xl transition-transform duration-300 ease-in-out md:hidden",
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex h-16 items-center justify-between border-b border-border px-4">
-          <Link href="/dashboard" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+        <div className="flex h-16 items-center justify-between border-b border-border px-5">
+          <Link href="/dashboard" onClick={onClose} className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#315CF5] text-white">
               <Building2 className="h-5 w-5" />
             </div>
-            <span className="text-lg font-bold tracking-tight">
-              SocietyAI
-            </span>
+            <div className="flex flex-col">
+              <span className="text-base font-semibold tracking-tight text-foreground">
+                Society<span className="text-[#315CF5]">AI</span>
+              </span>
+              <span className="text-[10px] font-mono text-muted-foreground uppercase">
+                Mobile Portal
+              </span>
+            </div>
           </Link>
 
           <button
             type="button"
             onClick={onClose}
             aria-label="Close menu"
-            className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 p-3">
+        <nav className="flex-1 space-y-1.5 p-4 overflow-y-auto">
           {items.map((item) => {
             const Icon = item.icon;
             const active =
               pathname === item.href ||
-              pathname.startsWith(`${item.href}/`);
+              (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
 
             return (
               <Link
@@ -191,27 +221,34 @@ export function MobileSidebar({
                 href={item.href}
                 onClick={onClose}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  "flex items-center justify-between rounded-xl px-3.5 py-3 text-sm font-medium transition-colors",
                   active
-                    ? "bg-primary/10 text-primary"
+                    ? "bg-[#315CF5]/10 text-[#315CF5] dark:text-[#819eff] font-semibold"
                     : "text-muted-foreground hover:bg-accent hover:text-foreground"
                 )}
               >
-                <Icon className="h-5 w-5" />
-                {item.name}
+                <div className="flex items-center gap-3">
+                  <Icon className={cn("h-5 w-5", active && "text-[#315CF5]")} />
+                  <span>{item.name}</span>
+                </div>
+                {"highlight" in item && item.highlight && (
+                  <span className="rounded-full bg-[#315CF5]/10 px-2 py-0.5 text-[10px] font-mono font-medium text-[#315CF5]">
+                    AI
+                  </span>
+                )}
               </Link>
             );
           })}
         </nav>
 
-        <div className="border-t border-border p-3">
+        <div className="border-t border-border p-4">
           <Link
             href="/profile"
             onClick={onClose}
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            className="flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
           >
             <User className="h-5 w-5" />
-            Account
+            <span>Profile &amp; Settings</span>
           </Link>
         </div>
       </aside>
