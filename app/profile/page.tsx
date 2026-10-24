@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { User, Mail, Shield, Calendar, KeyRound, AlertTriangle, CheckCircle2, AlertCircle } from "lucide-react";
 
 import AppShell from "../components/layout/AppShell";
 import { apiFetch } from "@/app/lib/api";
@@ -79,7 +80,7 @@ export default function ProfilePage() {
       });
 
       setProfile(data.user);
-      setNotice("Profile updated.");
+      setNotice("Profile updated successfully.");
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "Could not update profile."
@@ -103,7 +104,7 @@ export default function ProfilePage() {
       });
 
       setPasswords({ currentPassword: "", newPassword: "" });
-      setNotice("Password updated.");
+      setNotice("Password changed successfully.");
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "Could not update password."
@@ -143,54 +144,87 @@ export default function ProfilePage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-3xl space-y-6">
+      <div className="mx-auto max-w-3xl space-y-8">
         <div>
-          <p className="text-sm text-zinc-500">Account</p>
-          <h1 className="mt-1 text-3xl font-bold">Profile</h1>
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+            <User className="h-4 w-4" />
+            <span>Account Management</span>
+          </div>
+          <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-foreground">
+            Resident Profile
+          </h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            View your resident details, update contact records, or modify credentials.
+          </p>
         </div>
 
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
+          <div className="flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            <AlertCircle className="h-5 w-5 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
         {notice && (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-            {notice}
+          <div className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-500">
+            <CheckCircle2 className="h-5 w-5 shrink-0" />
+            <span>{notice}</span>
           </div>
         )}
 
         {loading ? (
-          <p className="text-sm text-zinc-500">Loading profile...</p>
+          <div className="py-16 text-center text-sm text-muted-foreground">
+            Loading profile information...
+          </div>
         ) : (
-          <>
-            <section className="rounded-2xl border border-zinc-200 bg-white p-6">
-              <h2 className="font-semibold">Account details</h2>
+          <div className="space-y-6">
+            {/* Account Details Card */}
+            <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <h2 className="text-base font-bold text-foreground">
+                Account Details
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Official residency identity registered with society management.
+              </p>
 
-              <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-                <ReadOnly label="Email" value={profile?.email ?? "-"} />
-                <ReadOnly label="Role" value={profile?.role ?? "-"} />
+              <dl className="mt-5 grid gap-4 sm:grid-cols-3">
                 <ReadOnly
+                  icon={Mail}
+                  label="Email"
+                  value={profile?.email ?? "-"}
+                />
+                <ReadOnly
+                  icon={Shield}
+                  label="Role"
+                  value={profile?.role ?? "-"}
+                />
+                <ReadOnly
+                  icon={Calendar}
                   label="Member since"
                   value={formatDate(profile?.createdAt)}
                 />
               </dl>
 
-              <p className="mt-4 text-xs text-zinc-500">
-                Email and role are managed by the society administrator.
+              <p className="mt-4 text-xs text-muted-foreground/80">
+                Email and society roles are strictly managed by your society administrator.
               </p>
             </section>
 
+            {/* Edit details form */}
             <form
               onSubmit={handleSaveProfile}
-              className="rounded-2xl border border-zinc-200 bg-white p-6"
+              className="rounded-2xl border border-border bg-card p-6 shadow-sm"
             >
-              <h2 className="font-semibold">Edit details</h2>
+              <h2 className="text-base font-bold text-foreground">
+                Edit Contact Details
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Keep your resident address and phone numbers up to date.
+              </p>
 
-              <div className="mt-4 space-y-4">
+              <div className="mt-5 space-y-4">
                 <Field
-                  label="Full name"
+                  label="Full Name"
                   value={form.name}
                   onChange={(value) =>
                     setForm((previous) => ({ ...previous, name: value }))
@@ -198,7 +232,7 @@ export default function ProfilePage() {
                 />
 
                 <Field
-                  label="Phone"
+                  label="Phone Number"
                   value={form.phone}
                   onChange={(value) =>
                     setForm((previous) => ({ ...previous, phone: value }))
@@ -206,8 +240,8 @@ export default function ProfilePage() {
                 />
 
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-zinc-700">
-                    Address
+                  <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Flat / House Address
                   </span>
 
                   <textarea
@@ -219,29 +253,41 @@ export default function ProfilePage() {
                       }))
                     }
                     required
-                    className="min-h-24 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                    rows={3}
+                    className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
                 </label>
               </div>
 
-              <button
-                type="submit"
-                disabled={savingProfile}
-                className="mt-5 rounded-xl bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-50"
-              >
-                {savingProfile ? "Saving..." : "Save changes"}
-              </button>
+              <div className="mt-6">
+                <button
+                  type="submit"
+                  disabled={savingProfile}
+                  className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 disabled:opacity-50"
+                >
+                  {savingProfile ? "Saving Details..." : "Save Changes"}
+                </button>
+              </div>
             </form>
 
+            {/* Change password form */}
             <form
               onSubmit={handleChangePassword}
-              className="rounded-2xl border border-zinc-200 bg-white p-6"
+              className="rounded-2xl border border-border bg-card p-6 shadow-sm"
             >
-              <h2 className="font-semibold">Change password</h2>
+              <div className="flex items-center gap-2">
+                <KeyRound className="h-4 w-4 text-primary" />
+                <h2 className="text-base font-bold text-foreground">
+                  Security & Password
+                </h2>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Ensure your account is protected with a strong, distinct password.
+              </p>
 
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <Field
-                  label="Current password"
+                  label="Current Password"
                   type="password"
                   value={passwords.currentPassword}
                   onChange={(value) =>
@@ -253,7 +299,7 @@ export default function ProfilePage() {
                 />
 
                 <Field
-                  label="New password"
+                  label="New Password"
                   type="password"
                   value={passwords.newPassword}
                   onChange={(value) =>
@@ -265,50 +311,64 @@ export default function ProfilePage() {
                 />
               </div>
 
-              <p className="mt-2 text-xs text-zinc-500">
-                Minimum 8 characters.
+              <p className="mt-3 text-xs text-muted-foreground">
+                Must be at least 8 characters in length.
               </p>
 
-              <button
-                type="submit"
-                disabled={savingPassword}
-                className="mt-5 rounded-xl bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-50"
-              >
-                {savingPassword ? "Updating..." : "Update password"}
-              </button>
+              <div className="mt-6">
+                <button
+                  type="submit"
+                  disabled={savingPassword}
+                  className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 disabled:opacity-50"
+                >
+                  {savingPassword ? "Updating..." : "Update Password"}
+                </button>
+              </div>
             </form>
 
-            <section className="rounded-2xl border border-red-200 bg-white p-6">
-              <h2 className="font-semibold text-red-700">Danger zone</h2>
+            {/* Danger zone */}
+            <section className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6">
+              <div className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <h2 className="text-base font-bold">Danger Zone</h2>
+              </div>
 
-              <p className="mt-2 text-sm text-zinc-600">
-                Deleting your account permanently removes your maintenance,
-                payment and invoice records.
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Permanently eliminate your user profile and all associated data records, including historical dues and maintenance receipts.
               </p>
 
               <button
                 type="button"
                 onClick={handleDeleteAccount}
                 disabled={deleting}
-                className="mt-4 rounded-xl border border-red-300 px-5 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-50"
+                className="mt-4 inline-flex items-center justify-center rounded-xl border border-destructive/50 bg-background px-4 py-2.5 text-xs font-bold text-destructive transition hover:bg-destructive/10 disabled:opacity-50"
               >
-                {deleting ? "Deleting..." : "Delete my account"}
+                {deleting ? "Deleting Account..." : "Permanently Delete My Account"}
               </button>
             </section>
-          </>
+          </div>
         )}
       </div>
     </AppShell>
   );
 }
 
-function ReadOnly({ label, value }: { label: string; value: string }) {
+function ReadOnly({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon?: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+}) {
   return (
-    <div>
-      <dt className="text-xs uppercase tracking-wide text-zinc-500">
-        {label}
-      </dt>
-      <dd className="mt-1 text-sm font-medium capitalize text-zinc-900">
+    <div className="rounded-xl border border-border/60 bg-muted/40 p-3.5">
+      <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {Icon && <Icon className="h-3.5 w-3.5 text-primary" />}
+        <span>{label}</span>
+      </div>
+      <dd className="mt-1 text-sm font-bold capitalize text-foreground">
         {value}
       </dd>
     </div>
@@ -328,7 +388,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-medium text-zinc-700">
+      <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {label}
       </span>
 
@@ -337,7 +397,7 @@ function Field({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         required
-        className="h-11 w-full rounded-xl border border-zinc-300 px-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+        className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
       />
     </label>
   );

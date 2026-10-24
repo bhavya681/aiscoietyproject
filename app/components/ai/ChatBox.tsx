@@ -8,6 +8,23 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from "react";
+import {
+  Send,
+  Sparkles,
+  Bot,
+  User,
+  AlertCircle,
+  CheckCircle2,
+  ShieldAlert,
+  Copy,
+  Check,
+  RotateCcw,
+  Building,
+  CreditCard,
+  HelpCircle,
+  FileText,
+  CornerDownLeft,
+} from "lucide-react";
 
 import type { ChatResponse, ChatToolCall } from "@/app/lib/types";
 import { formatCurrency } from "@/app/lib/types";
@@ -16,51 +33,98 @@ type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
-  /** Tools the assistant used to produce this reply, if any. */
+  timestamp?: string;
   toolCalls?: ChatToolCall[];
-  /** Set while the assistant waits for the resident to confirm a payment. */
   confirmation?: ChatResponse["confirmation"];
 };
 
-const WELCOME: Message = {
-  id: "welcome",
-  role: "assistant",
-  content:
-    "Hi! I'm your SocietyAI assistant. I can look up your maintenance, " +
-    "invoices and payment history, and answer questions about society policy.",
-};
-
 const SUGGESTIONS = [
-  "How much maintenance do I have pending?",
-  "Show my maintenance history.",
-  "What is the monthly maintenance?",
-  "What happens if I pay late?",
+  {
+    title: "Pending Maintenance",
+    desc: "How much maintenance do I have pending?",
+    icon: CreditCard,
+  },
+  {
+    title: "Payment History",
+    desc: "Show my maintenance and payment history.",
+    icon: FileText,
+  },
+  {
+    title: "Monthly Rate",
+    desc: "What is the monthly maintenance amount?",
+    icon: Building,
+  },
+  {
+    title: "Late Payment Rules",
+    desc: "What happens if I pay late?",
+    icon: HelpCircle,
+  },
 ];
 
 let messageCounter = 0;
 
 function nextId(): string {
   messageCounter += 1;
-
   return `m${Date.now()}-${messageCounter}`;
 }
 
 export default function ChatBox() {
-  const [messages, setMessages] = useState<Message[]>([WELCOME]);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: "welcome",
+      role: "assistant",
+      content:
+        "Hello! I am your **SocietyAI Concierge**.\n\nI can verify your maintenance dues, look up historical transactions, generate receipts, and clarify any questions regarding our society bylaws.",
+      timestamp: "Just now",
+    },
+  ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Keep the newest message in view.
+  // Auto-scroll to latest message
   useEffect(() => {
     const node = scrollRef.current;
-
     if (node) {
-      node.scrollTop = node.scrollHeight;
+      node.scrollTo({
+        top: node.scrollHeight,
+        behavior: "smooth",
+      });
     }
   }, [messages, loading]);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(
+        textareaRef.current.scrollHeight,
+        140
+      )}px`;
+    }
+  }, [input]);
+
+  const copyToClipboard = (id: string, text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const clearChat = () => {
+    setMessages([
+      {
+        id: nextId(),
+        role: "assistant",
+        content:
+          "Chat cleared. How can I assist you with your society affairs today?",
+        timestamp: "Just now",
+      },
+    ]);
+  };
 
   const sendMessage = useCallback(
     async (text: string, confirmationId?: string) => {
@@ -74,9 +138,12 @@ export default function ChatBox() {
         id: nextId(),
         role: "user",
         content: question,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       };
 
-      // History sent to the server excludes the message we are adding now.
       const history = messages
         .filter((message) => message.id !== "welcome")
         .map(({ role, content }) => ({ role, content }));
@@ -102,7 +169,7 @@ export default function ChatBox() {
 
         if (!response.ok) {
           throw new Error(
-            data?.message || "The assistant is unavailable right now."
+            data?.message || "The assistant is currently unavailable."
           );
         }
 
@@ -114,6 +181,10 @@ export default function ChatBox() {
             id: nextId(),
             role: "assistant",
             content: result.message,
+            timestamp: new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
             toolCalls: result.toolCalls,
             confirmation: result.confirmation,
           },
@@ -133,15 +204,12 @@ export default function ChatBox() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     sendMessage(input);
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-    // Enter sends, Shift+Enter inserts a newline.
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-
       sendMessage(input);
     }
   }
@@ -150,170 +218,269 @@ export default function ChatBox() {
     if (!message.confirmation) {
       return;
     }
-
-    // The explicit confirmation id is what the server requires before it will
-    // release the payment. The text is only the message shown in the chat.
-    sendMessage("Yes, pay it", message.confirmation.id);
+    sendMessage("Yes, proceed and record payment", message.confirmation.id);
   }
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] min-h-[560px] flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-4">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-lg">
+      {/* Sleek Header */}
+      <div className="flex items-center justify-between border-b border-border bg-card/80 px-5 py-3.5 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-sm font-bold text-white">
-            AI
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-indigo-600 text-primary-foreground shadow-md">
+            <Bot className="h-5 w-5" />
+            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card bg-emerald-500" />
           </div>
 
           <div>
-            <h2 className="font-semibold text-zinc-900">SocietyAI Assistant</h2>
-
-            <div className="mt-0.5 flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              <span className="text-xs text-zinc-500">
-                {loading ? "Thinking..." : "Online · RAG + tools"}
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold tracking-tight text-foreground">
+                SocietyAI Concierge
+              </h2>
+              <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                <Sparkles className="h-2.5 w-2.5" />
+                RAG Agent
               </span>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Real-time maintenance ledger & official policy repository
+            </p>
           </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={clearChat}
+            title="Reset conversation"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/40 px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-accent hover:text-foreground"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">New Chat</span>
+          </button>
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto bg-zinc-50 p-5">
-        {messages.map((message) => (
-          <div key={message.id} className="space-y-2">
+      {/* Messages Scroll Area */}
+      <div
+        ref={scrollRef}
+        className="flex-1 space-y-6 overflow-y-auto p-4 sm:p-6"
+      >
+        {messages.map((message) => {
+          const isUser = message.role === "user";
+
+          return (
             <div
-              className={`flex ${
-                message.role === "user" ? "justify-end" : "justify-start"
+              key={message.id}
+              className={`flex gap-3.5 ${
+                isUser ? "flex-row-reverse" : "flex-row"
               }`}
             >
+              {/* Avatar */}
               <div
-                className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-6 ${
-                  message.role === "user"
-                    ? "rounded-br-md bg-zinc-900 text-white"
-                    : "rounded-bl-md border border-zinc-200 bg-white text-zinc-800"
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
+                  isUser
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "border border-border bg-muted text-foreground"
                 }`}
               >
-                {message.content}
+                {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+              </div>
+
+              {/* Message Content Container */}
+              <div
+                className={`flex flex-col space-y-2 max-w-[85%] sm:max-w-[75%] ${
+                  isUser ? "items-end" : "items-start"
+                }`}
+              >
+                <div
+                  className={`group relative rounded-2xl px-4 py-3.5 text-sm leading-relaxed transition-all ${
+                    isUser
+                      ? "rounded-tr-xs bg-primary text-primary-foreground font-medium shadow-sm"
+                      : "rounded-tl-xs border border-border/80 bg-muted/30 text-foreground backdrop-blur-xs"
+                  }`}
+                >
+                  <div className="whitespace-pre-wrap">{message.content}</div>
+
+                  {!isUser && (
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(message.id, message.content)}
+                      className="absolute right-2 top-2 rounded-md p-1 opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100 text-muted-foreground"
+                      title="Copy response"
+                    >
+                      {copiedId === message.id ? (
+                        <Check className="h-3.5 w-3.5 text-emerald-500" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                  )}
+                </div>
+
+                {/* Tool Badges */}
+                {message.toolCalls && message.toolCalls.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    {message.toolCalls.map((toolCall) => (
+                      <span
+                        key={`${message.id}-${toolCall.name}`}
+                        className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-semibold ${
+                          toolCall.status === "success"
+                            ? "border border-emerald-500/20 bg-emerald-500/10 text-emerald-500"
+                            : "border border-amber-500/20 bg-amber-500/10 text-amber-500"
+                        }`}
+                      >
+                        <CheckCircle2 className="h-3 w-3" />
+                        <span>Used: {toolCall.name}</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Payment Confirmation Card */}
+                {message.confirmation && (
+                  <div className="w-full rounded-2xl rounded-tl-xs border border-amber-500/30 bg-amber-500/10 p-4 shadow-xs">
+                    <div className="flex items-center gap-2 text-amber-500">
+                      <ShieldAlert className="h-4 w-4" />
+                      <p className="text-xs font-bold uppercase tracking-wider">
+                        Payment Approval Required
+                      </p>
+                    </div>
+
+                    <p className="mt-1.5 text-xs leading-relaxed text-foreground">
+                      Authorizing this will register an official payment of{" "}
+                      <strong className="text-foreground font-bold">
+                        {formatCurrency(message.confirmation.amount)}
+                      </strong>{" "}
+                      toward your outstanding dues.
+                    </p>
+
+                    <div className="mt-3.5 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => confirmPayment(message)}
+                        disabled={loading}
+                        className="rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 disabled:opacity-50"
+                      >
+                        Confirm & Record
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setInput("cancel payment")}
+                        disabled={loading}
+                        className="rounded-xl border border-border bg-card px-4 py-2 text-xs font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground disabled:opacity-50"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {message.timestamp && (
+                  <span className="text-[10px] text-muted-foreground px-1">
+                    {message.timestamp}
+                  </span>
+                )}
               </div>
             </div>
+          );
+        })}
 
-            {message.toolCalls && message.toolCalls.length > 0 && (
-              <div
-                className={`flex ${
-                  message.role === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div className="flex flex-wrap gap-1.5">
-                  {message.toolCalls.map((toolCall) => (
-                    <span
-                      key={`${message.id}-${toolCall.name}`}
-                      title={`Tool status: ${toolCall.status}`}
-                      className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${
-                        toolCall.status === "success"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-amber-50 text-amber-700"
-                      }`}
-                    >
-                      {toolCall.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {message.confirmation && (
-              <div className="flex justify-start">
-                <div className="w-full max-w-[85%] rounded-2xl rounded-bl-md border border-amber-200 bg-amber-50 p-4">
-                  <p className="text-sm font-semibold text-amber-900">
-                    Confirm payment
-                  </p>
-
-                  <p className="mt-1 text-sm text-amber-800">
-                    This will record a payment of{" "}
-                    <strong>
-                      {formatCurrency(message.confirmation.amount)}
-                    </strong>{" "}
-                    against your maintenance. Nothing has been charged yet.
-                  </p>
-
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => confirmPayment(message)}
-                      disabled={loading}
-                      className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-50"
-                    >
-                      Yes, pay it
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setInput("cancel the payment")}
-                      disabled={loading}
-                      className="rounded-lg border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-100 disabled:opacity-50"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-
+        {/* Loading Indicator */}
         {loading && (
-          <div className="flex justify-start">
-            <div className="rounded-2xl rounded-bl-md border border-zinc-200 bg-white px-4 py-3">
-              <div className="flex gap-1">
-                <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400" />
-                <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:150ms]" />
-                <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:300ms]" />
+          <div className="flex gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
+              <Bot className="h-4 w-4" />
+            </div>
+
+            <div className="rounded-2xl rounded-tl-xs border border-border/80 bg-muted/30 px-4 py-3 shadow-xs">
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 animate-bounce rounded-full bg-primary" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:150ms]" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:300ms]" />
               </div>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
+          <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-xs text-destructive">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
       </div>
 
-      <div className="border-t border-zinc-200 bg-white">
-        <div className="flex gap-2 overflow-x-auto px-5 pt-4">
-          {SUGGESTIONS.map((suggestion) => (
-            <button
-              key={suggestion}
-              type="button"
-              onClick={() => sendMessage(suggestion)}
-              disabled={loading}
-              className="whitespace-nowrap rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-600 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 disabled:opacity-50"
-            >
-              {suggestion}
-            </button>
-          ))}
+      {/* Suggested Prompts Cards (when chat is short) */}
+      {messages.length <= 2 && (
+        <div className="border-t border-border/60 bg-muted/10 px-4 py-3 sm:px-6">
+          <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Suggested Queries
+          </p>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            {SUGGESTIONS.map((sugg) => {
+              const Icon = sugg.icon;
+              return (
+                <button
+                  key={sugg.title}
+                  type="button"
+                  onClick={() => sendMessage(sugg.desc)}
+                  disabled={loading}
+                  className="flex items-start gap-2.5 rounded-xl border border-border bg-card p-2.5 text-left transition hover:border-primary/40 hover:bg-primary/5 group"
+                >
+                  <div className="rounded-lg bg-primary/10 p-1.5 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors shrink-0">
+                    <Icon className="h-3.5 w-3.5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-foreground truncate">
+                      {sugg.title}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground truncate">
+                      {sugg.desc}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
+      )}
 
-        <form onSubmit={handleSubmit} className="flex gap-3 p-5 pt-3">
+      {/* Input Form Bar */}
+      <div className="border-t border-border bg-card p-3 sm:p-4">
+        <form
+          onSubmit={handleSubmit}
+          className="relative flex items-center rounded-2xl border border-border bg-muted/30 transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20"
+        >
           <textarea
+            ref={textareaRef}
             value={input}
-            onChange={(event) => setInput(event.target.value)}
+            onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             rows={1}
-            placeholder="Ask about maintenance, invoices or society policy..."
+            placeholder="Ask about maintenance, invoices, society guidelines... (Press Enter to send)"
             disabled={loading}
-            className="max-h-32 min-h-11 flex-1 resize-none rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-zinc-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:bg-zinc-50"
+            className="max-h-36 min-h-[48px] w-full resize-none bg-transparent px-4 py-3.5 text-sm text-foreground outline-none placeholder:text-muted-foreground disabled:opacity-50"
           />
 
-          <button
-            type="submit"
-            disabled={!input.trim() || loading}
-            className="h-11 rounded-xl bg-zinc-900 px-5 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {loading ? "..." : "Send"}
-          </button>
+          <div className="flex items-center gap-1.5 pr-2.5">
+            <button
+              type="submit"
+              disabled={!input.trim() || loading}
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed"
+              title="Send message"
+            >
+              <CornerDownLeft className="h-4 w-4" />
+            </button>
+          </div>
         </form>
+
+        <p className="mt-2 text-center text-[11px] text-muted-foreground/75">
+          SocietyAI provides informational assistance powered by your building records.
+        </p>
       </div>
     </div>
   );
 }
+
+

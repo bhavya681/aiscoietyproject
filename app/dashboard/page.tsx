@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import AppShell from "../components/layout/AppShell";
 import MaintenanceCard from "../components/dashboard/MaintenanceCard";
-import StatCard from "../components/dashboard/StatCard";
+import StatCard from "../components/ui/StatCard";
 import { apiFetch } from "@/app/lib/api";
 import {
   formatCurrency,
@@ -15,6 +15,19 @@ import {
   type Profile,
   type ProfileResponse,
 } from "@/app/lib/types";
+import {
+  LayoutDashboard,
+  Wrench,
+  History,
+  Bot,
+  User,
+  Shield,
+  ChevronLeft,
+  X,
+  Building2,
+  LogOut,
+  LayoutTemplate,
+} from "lucide-react";
 
 export default function DashboardPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -74,15 +87,15 @@ export default function DashboardPage() {
     <AppShell>
       <div className="space-y-8">
         <div>
-          <p className="text-sm text-zinc-500">Overview</p>
+          <p className="text-sm text-muted-foreground">Overview</p>
 
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-zinc-950">
+          <h1 className="mt-1 text-3xl font-bold tracking-tight">
             {loading
               ? "Welcome back"
               : `Welcome back, ${profile?.name ?? "Resident"}`}
           </h1>
 
-          <p className="mt-2 text-sm text-zinc-500">
+          <p className="mt-2 text-sm text-muted-foreground">
             {profile
               ? `${profile.email} · ${profile.role === "admin" ? "Admin" : "Resident"}`
               : "Here's what's happening with your society account."}
@@ -90,7 +103,7 @@ export default function DashboardPage() {
         </div>
 
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {error}
           </div>
         )}
@@ -104,21 +117,21 @@ export default function DashboardPage() {
                 ? `Due ${formatDate(pending.nextDueDate)}`
                 : "Nothing due"
             }
-            icon="₹"
+            icon={<Wrench className="h-5 w-5" />}
           />
 
           <StatCard
             title="Monthly Amount"
             value={formatCurrency(pending?.monthlyAmount ?? 0)}
             description="Per flat, per month"
-            icon="◷"
+            icon={<LayoutDashboard className="h-5 w-5" />}
           />
 
           <StatCard
             title="Total Paid"
             value={formatCurrency(totalPaid)}
             description={`${paidRecords.length} payment${paidRecords.length === 1 ? "" : "s"} recorded`}
-            icon="✓"
+            icon={<History className="h-5 w-5" />}
           />
 
           <StatCard
@@ -131,7 +144,7 @@ export default function DashboardPage() {
                   }`
                 : "No payments yet"
             }
-            icon="●"
+            icon={<User className="h-5 w-5" />}
           />
         </div>
 
@@ -169,26 +182,26 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-zinc-200 bg-white p-6">
+        <div className="rounded-2xl border border-border bg-card p-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-semibold">Recent Activity</h2>
-              <p className="mt-1 text-sm text-zinc-500">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Your latest maintenance activity
               </p>
             </div>
 
             <Link
               href="/maintenance/history"
-              className="text-sm font-semibold text-indigo-600"
+              className="text-sm font-semibold text-primary"
             >
               View history →
             </Link>
           </div>
 
-          <div className="mt-6 divide-y divide-zinc-100">
+          <div className="mt-6 divide-y divide-border">
             {history.length === 0 && (
-              <p className="py-4 text-sm text-zinc-500">
+              <p className="py-4 text-sm text-muted-foreground">
                 No maintenance records yet.
               </p>
             )}
@@ -199,7 +212,7 @@ export default function DashboardPage() {
                 className="flex items-center justify-between py-4"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-sm text-indigo-600">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-sm text-primary">
                     {record.status === "paid" ? "✓" : "!"}
                   </div>
 
@@ -208,7 +221,7 @@ export default function DashboardPage() {
                       Maintenance{" "}
                       {record.status === "paid" ? "payment" : "due"}
                     </p>
-                    <p className="text-xs text-zinc-500">
+                    <p className="text-xs text-muted-foreground">
                       Due {formatDate(record.dueDate)}
                     </p>
                   </div>
@@ -225,7 +238,7 @@ export default function DashboardPage() {
 
                   <Link
                     href={`/maintenance/invoice/${record._id}`}
-                    className="text-xs text-indigo-600"
+                    className="text-xs text-primary"
                   >
                     View invoice
                   </Link>

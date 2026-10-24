@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "@/app/lib/theme";
 
 export default function LoginPage() {
   const router = useRouter();
-
+  const { resolvedTheme } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -50,27 +51,32 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
+    <main className="flex min-h-screen items-center justify-center bg-background px-6">
+      <div className="w-full max-w-md rounded-2xl bg-card p-8 shadow-2xl">
         <div className="mb-8">
           <Link
             href="/"
-            className="text-sm font-semibold text-indigo-600"
+            className="flex items-center gap-2 text-sm font-semibold text-primary"
           >
+            <img
+              src={resolvedTheme === "dark" ? "/logo.png" : "/logo-light.png"}
+              alt="SocietyAI"
+              className="h-6 w-6 rounded-md object-contain"
+            />
             ← SocietyAI
           </Link>
 
-          <h1 className="mt-8 text-3xl font-bold">
+          <h1 className="mt-8 text-3xl font-bold text-foreground">
             Welcome back
           </h1>
 
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-muted-foreground">
             Sign in to your society account.
           </p>
         </div>
 
         {error && (
-          <div className="mb-5 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="mb-5 rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {error}
           </div>
         )}
@@ -95,7 +101,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-slate-950 py-3 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+            className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/80 disabled:opacity-50"
           >
             {loading ? "Signing in..." : "Sign in"}
           </button>
@@ -105,7 +111,7 @@ export default function LoginPage() {
           Don&apos;t have an account?{" "}
           <Link
             href="/signup"
-            className="font-semibold text-indigo-600"
+            className="font-semibold text-primary"
           >
             Create one
           </Link>
@@ -130,7 +136,7 @@ function Input({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-medium text-slate-700">
+      <span className="mb-2 block text-sm font-medium text-muted-foreground">
         {label}
       </span>
 
@@ -140,7 +146,7 @@ function Input({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         required
-        className="h-11 w-full rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+        className="h-11 w-full rounded-xl border border-border bg-card px-3 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
       />
     </label>
   );

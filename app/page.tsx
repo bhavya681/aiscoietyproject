@@ -1,17 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { useTheme } from "@/app/lib/theme";
 
 export default function Home() {
+  const { resolved } = useTheme();
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-slate-900">
+    <main className="min-h-screen bg-background text-foreground">
       {/* Navbar */}
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-xl">
+      <header className="border-b border-border bg-card/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-950 text-sm font-bold text-white">
-              S
-            </div>
+            <img
+              src={resolved === "dark" ? "/logo.png" : "/logo-light.png"}
+              alt="SocietyAI"
+              className="h-9 w-9 rounded-xl object-contain"
+            />
 
             <span className="text-lg font-bold tracking-tight">
               SocietyAI
@@ -21,21 +25,21 @@ export default function Home() {
           <nav className="hidden items-center gap-8 md:flex">
             <Link
               href="#features"
-              className="text-sm text-slate-600 transition hover:text-slate-950"
+              className="text-sm text-muted-foreground transition hover:text-foreground"
             >
               Features
             </Link>
 
             <Link
               href="#ai"
-              className="text-sm text-slate-600 transition hover:text-slate-950"
+              className="text-sm text-muted-foreground transition hover:text-foreground"
             >
               AI Assistant
             </Link>
 
             <Link
               href="#how"
-              className="text-sm text-slate-600 transition hover:text-slate-950"
+              className="text-sm text-muted-foreground transition hover:text-foreground"
             >
               How it works
             </Link>
@@ -44,14 +48,14 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <Link
               href="/login"
-              className="hidden rounded-lg px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 sm:block"
+              className="hidden rounded-lg px-4 py-2 text-sm font-medium text-muted-foreground transition hover:bg-accent sm:block"
             >
               Login
             </Link>
 
             <Link
               href="/signup"
-              className="rounded-lg bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/80"
             >
               Get Started
             </Link>
@@ -70,14 +74,14 @@ export default function Home() {
               AI-powered society management
             </div>
 
-            <h1 className="max-w-3xl text-5xl font-bold tracking-tight text-slate-950 sm:text-6xl">
+            <h1 className="max-w-3xl text-5xl font-bold tracking-tight text-foreground sm:text-6xl">
               Manage your society.
               <span className="block text-indigo-600">
                 Let AI handle the questions.
               </span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600">
+            <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
               SocietyAI combines maintenance management, resident data,
               payments, invoices and an AI assistant into one simple platform.
             </p>
@@ -85,20 +89,20 @@ export default function Home() {
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
                 href="/signup"
-                className="rounded-xl bg-slate-950 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-slate-950/10 transition hover:-translate-y-0.5 hover:bg-slate-800"
+                className="rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-primary/10 transition hover:-translate-y-0.5 hover:bg-primary/80"
               >
                 Create Account →
               </Link>
 
               <Link
                 href="/login"
-                className="rounded-xl border border-slate-300 bg-white px-6 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                className="rounded-xl border border-border bg-card px-6 py-3.5 text-sm font-semibold text-foreground transition hover:bg-accent"
               >
                 Sign In
               </Link>
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-6 text-sm text-slate-500">
+            <div className="mt-8 flex flex-wrap gap-6 text-sm text-muted-foreground">
               <span>✓ Maintenance tracking</span>
               <span>✓ AI assistant</span>
               <span>✓ Secure authentication</span>
@@ -107,10 +111,10 @@ export default function Home() {
 
           {/* Dashboard preview */}
           <div className="relative">
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl shadow-slate-900/10">
+            <div className="rounded-2xl border border-border bg-card p-4 shadow-2xl shadow-primary/10">
               <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-slate-500">
+                  <p className="text-xs font-medium text-muted-foreground">
                     Society Dashboard
                   </p>
 
@@ -144,7 +148,7 @@ export default function Home() {
                 />
               </div>
 
-              <div className="mt-4 rounded-xl border border-slate-200 p-4">
+              <div className="mt-4 rounded-xl border border-border p-4">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-indigo-700">
                     AI
@@ -154,13 +158,13 @@ export default function Home() {
                     <p className="text-sm font-semibold">
                       SocietyAI Assistant
                     </p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-muted-foreground">
                       Ask about payments, invoices or maintenance.
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-4 rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                <div className="mt-4 rounded-lg bg-card px-4 py-3 text-sm text-muted-foreground">
                   &ldquo;How much maintenance do I have pending?&rdquo;
                 </div>
 
@@ -174,7 +178,7 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section id="features" className="border-y border-slate-200 bg-white">
+      <section id="features" className="border-y border-border bg-card">
         <div className="mx-auto max-w-7xl px-6 py-24">
           <div className="max-w-2xl">
             <p className="text-sm font-semibold uppercase tracking-wider text-indigo-600">
@@ -185,7 +189,7 @@ export default function Home() {
               Everything residents need.
             </h2>
 
-            <p className="mt-4 text-slate-600">
+            <p className="mt-4 text-muted-foreground">
               A single dashboard for everyday society management.
             </p>
           </div>
@@ -219,7 +223,7 @@ export default function Home() {
       </section>
 
       {/* AI section */}
-      <section id="ai" className="bg-slate-950 text-white">
+      <section id="ai" className="bg-card text-foreground">
         <div className="mx-auto grid max-w-7xl gap-12 px-6 py-24 lg:grid-cols-2 lg:items-center">
           <div>
             <div className="mb-5 inline-flex rounded-full border border-indigo-400/30 bg-indigo-400/10 px-3 py-1 text-sm text-indigo-300">
@@ -230,14 +234,14 @@ export default function Home() {
               Your society has an AI assistant.
             </h2>
 
-            <p className="mt-5 max-w-xl leading-7 text-slate-400">
+            <p className="mt-5 max-w-xl leading-7 text-muted-foreground">
               SocietyAI uses retrieval-augmented generation for society
               knowledge and tools for real-time user-specific operations.
             </p>
 
             <Link
               href="/ai"
-              className="mt-8 inline-flex rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+              className="mt-8 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80"
             >
               Try AI Assistant →
             </Link>
@@ -272,7 +276,7 @@ export default function Home() {
       </section>
 
       {/* How */}
-      <section id="how" className="bg-white">
+      <section id="how" className="bg-card">
         <div className="mx-auto max-w-7xl px-6 py-24">
           <div className="text-center">
             <p className="text-sm font-semibold uppercase tracking-wider text-indigo-600">
@@ -307,8 +311,8 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-slate-50">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-8 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+      <footer className="border-t border-border bg-card">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 SocietyAI</p>
 
           <p>AI-powered society management platform</p>
@@ -328,9 +332,9 @@ function PreviewCard({
   icon: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+    <div className="rounded-xl border border-border bg-muted p-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-slate-500">{label}</span>
+        <span className="text-xs text-muted-foreground">{label}</span>
 
         <span className="text-xs font-bold text-indigo-600">{icon}</span>
       </div>
@@ -350,14 +354,14 @@ function Feature({
   icon: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 transition hover:-translate-y-1 hover:shadow-lg">
+    <div className="rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:shadow-lg">
       <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 font-bold text-indigo-600">
         {icon}
       </div>
 
       <h3 className="mt-5 font-semibold">{title}</h3>
 
-      <p className="mt-2 text-sm leading-6 text-slate-500">
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">
         {description}
       </p>
     </div>
@@ -381,9 +385,9 @@ function ChatMessage({
           : "mr-8 bg-white/5"
       }`}
     >
-      <p className="text-xs font-semibold text-slate-400">{role}</p>
+      <p className="text-xs font-semibold text-muted-foreground">{role}</p>
 
-      <p className="mt-1 text-sm leading-6 text-slate-200">{message}</p>
+      <p className="mt-1 text-sm leading-6 text-foreground">{message}</p>
     </div>
   );
 }
@@ -399,13 +403,13 @@ function Step({
 }) {
   return (
     <div className="text-center">
-      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-950 text-sm font-bold text-white">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
         {number}
       </div>
 
       <h3 className="mt-5 text-lg font-semibold">{title}</h3>
 
-      <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500">
+      <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
         {description}
       </p>
     </div>
