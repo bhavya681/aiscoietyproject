@@ -23,13 +23,13 @@ export default function LoadingSkeleton({
 
 export function StatCardSkeleton() {
   return (
-    <div className="rounded-xl border border-border bg-card p-5">
+    <div className="rounded-2xl border border-border/80 bg-card p-5">
       <div className="flex items-start justify-between">
         <div className="space-y-2">
           <div className="h-3 w-24 animate-pulse rounded bg-muted" />
           <div className="h-7 w-20 animate-pulse rounded bg-muted" />
         </div>
-        <div className="h-10 w-10 animate-pulse rounded-lg bg-muted" />
+        <div className="h-9 w-9 animate-pulse rounded-[10px] bg-muted" />
       </div>
     </div>
   );
@@ -37,7 +37,7 @@ export function StatCardSkeleton() {
 
 export function TableSkeleton({ rows = 5 }: { rows?: number }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className="rounded-2xl border border-border/80 bg-card p-4">
       <div className="h-4 w-32 animate-pulse rounded bg-muted" />
       <div className="mt-4 space-y-3">
         {Array.from({ length: rows }).map((_, index) => (

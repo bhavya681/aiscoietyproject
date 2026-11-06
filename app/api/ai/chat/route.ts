@@ -115,6 +115,7 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         message: result.message,
+        ui: result.ui,
         toolCalls: result.toolCalls,
         source: result.source,
         // Non-null only when the assistant is waiting for the resident to

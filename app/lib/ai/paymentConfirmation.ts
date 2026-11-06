@@ -132,10 +132,28 @@ export async function handlePaymentConfirmation(options: {
     };
   }
 
+  const amountText = `₹${result.amount.toLocaleString("en-IN")}`;
+  const methodText = action.paymentMethod.replace("_", " ");
+
+  const confirmationMessage =
+    `Payment confirmed. ${amountText} was paid via ${methodText} ` +
+    `(transaction ${result.transactionId}). Your maintenance for that cycle is now marked paid.`;
+
+  const ui = [
+    "root = Answer([intro, summary, note])",
+    `intro = TextBlock(${JSON.stringify(confirmationMessage)})`,
+    "summary = StatGrid([paid])",
+    `paid = Stat("Payment recorded", ${JSON.stringify(
+      amountText
+    )}, ${JSON.stringify(`Transaction ${result.transactionId}`)}, "success")`,
+    'note = Callout("Your maintenance for this cycle is now marked paid.", "Receipt ready", "success")',
+  ].join("\n");
+
   return {
     handled: true,
     response: apiSuccess(
       {
+        ui,
         payment: {
           transactionId: result.transactionId,
           amount: result.amount,
@@ -146,10 +164,8 @@ export async function handlePaymentConfirmation(options: {
           { name: "record_maintenance_payment", status: "success" as const },
         ],
       },
-      `Payment confirmed. ?${result.amount.toLocaleString(
-        "en-IN"
-      )} was paid via ${action.paymentMethod.replace("_", " ")} ` +
-        `(transaction ${result.transactionId}). Your maintenance for that cycle is now marked paid.`
-    ,200),
+      confirmationMessage,
+      200
+    ),
   };
 }

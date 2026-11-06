@@ -3,33 +3,55 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
-  CreditCard,
   AlertCircle,
-  CheckCircle2,
-  Clock,
-  ArrowRight,
-  ShieldCheck,
-  FileText,
-  Building,
-  Receipt,
   ArrowUpRight,
-  ChevronRight
+  Banknote,
+  CheckCircle2,
+  FileText,
+  Landmark,
+  ShieldCheck,
+  Smartphone,
+  Wallet,
+  X,
 } from "lucide-react";
 
 import AppShell from "../components/layout/AppShell";
+import PageHeader from "@/app/components/ui/PageHeader";
+import StatusBadge from "@/app/components/ui/StatusBadge";
 import { apiFetch, ApiError } from "@/app/lib/api";
 import {
   formatCurrency,
   formatDate,
+  type MaintenanceRecord,
   type PaymentResponse,
   type PendingResponse,
 } from "@/app/lib/types";
 
 const PAYMENT_METHODS = [
-  { value: "upi", label: "UPI / QR Code", desc: "Instant settlement via Google Pay, PhonePe, Paytm" },
-  { value: "bank_transfer", label: "NEFT / RTGS Bank Transfer", desc: "Direct IMPS / NEFT transfer to Society account" },
-  { value: "cash", label: "Society Office Cash Counter", desc: "Pay in person with immediate manual voucher" },
-  { value: "other", label: "Cheque / DD", desc: "Demand Draft or Society Cheque submission" },
+  {
+    value: "upi",
+    label: "UPI or QR code",
+    desc: "Google Pay, PhonePe, Paytm",
+    icon: Smartphone,
+  },
+  {
+    value: "bank_transfer",
+    label: "NEFT or RTGS",
+    desc: "Direct transfer to the society account",
+    icon: Landmark,
+  },
+  {
+    value: "cash",
+    label: "Society office",
+    desc: "Pay in person with a manual voucher",
+    icon: Banknote,
+  },
+  {
+    value: "other",
+    label: "Cheque or demand draft",
+    desc: "Submit a cheque at the society office",
+    icon: FileText,
+  },
 ] as const;
 
 type PaymentMethod = (typeof PAYMENT_METHODS)[number]["value"];
@@ -46,6 +68,10 @@ export default function MaintenancePage() {
 
   const [method, setMethod] = useState<PaymentMethod>("upi");
   const [paying, setPaying] = useState(false);
+  const [paymentToConfirm, setPaymentToConfirm] = useState<{
+    id: string;
+    amount: number;
+  } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -82,13 +108,8 @@ export default function MaintenancePage() {
     };
   }, []);
 
-  async function handlePay(maintenanceId: string, amount: number) {
-    const selectedMethodLabel = PAYMENT_METHODS.find((option) => option.value === method)?.label;
-    const confirmed = window.confirm(
-      `Record payment of ${formatCurrency(amount)} via ${selectedMethodLabel}?\n\nThis will instantly update your ledger and generate an official receipt.`
-    );
-
-    if (!confirmed) {
+  async function confirmPayment() {
+    if (!paymentToConfirm) {
       return;
     }
 
@@ -98,7 +119,7 @@ export default function MaintenancePage() {
 
     try {
       const result = await apiFetch<PaymentResponse>(
-        `/maintenance/pay/${maintenanceId}`,
+        `/maintenance/pay/${paymentToConfirm.id}`,
         {
           method: "POST",
           body: { paymentMethod: method, confirmation: true },
@@ -108,7 +129,7 @@ export default function MaintenancePage() {
       setNotice(
         `Payment of ${formatCurrency(
           result.amount
-        )} successfully recorded. Transaction ID: ${result.transactionId}`
+        )} recorded. Transaction ID: ${result.transactionId}`
       );
 
       setData(await fetchPending());
@@ -120,262 +141,381 @@ export default function MaintenancePage() {
       );
     } finally {
       setPaying(false);
+      setPaymentToConfirm(null);
     }
   }
 
   const isPending = (data?.totalPending ?? 0) > 0;
+  const selectedMethod =
+    PAYMENT_METHODS.find((option) => option.value === method) ??
+    PAYMENT_METHODS[0];
 
   return (
     <AppShell>
-      <div className="space-y-8 max-w-7xl mx-auto">
-        
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border/60 pb-6">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono uppercase tracking-wider text-[#315CF5] font-semibold">
-                Financial Operations &bull; Dues &amp; Billing
-              </span>
-            </div>
-            <h1 className="mt-2 text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-foreground">
-              Maintenance Management
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground font-mono">
-              Track society dues, submit payments, and access audited GST invoices.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
+      <div className="mx-auto max-w-6xl space-y-7">
+        <PageHeader
+          eyebrow="Billing and payments"
+          title="Maintenance"
+          description="Review your outstanding dues, record a payment, and keep a clean record of every billing cycle."
+          action={
             <Link
               href="/maintenance/history"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-accent transition"
+              className="inline-flex h-10 items-center gap-2 rounded-[10px] border border-border bg-card px-4 text-xs font-medium text-foreground transition-colors hover:bg-muted"
             >
-              <span>View Past Receipts</span>
-              <ChevronRight className="h-3.5 w-3.5" />
+              <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+              Payment history
             </Link>
-          </div>
-        </div>
+          }
+        />
 
         {error && (
-          <div className="flex items-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            <AlertCircle className="h-5 w-5 shrink-0" />
+          <div className="flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/[0.06] px-4 py-3 text-sm text-destructive">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {notice && (
-          <div className="flex items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-600 dark:text-emerald-400">
-            <CheckCircle2 className="h-5 w-5 shrink-0" />
+          <div className="flex items-start gap-2.5 rounded-xl border border-emerald/20 bg-emerald/[0.07] px-4 py-3 text-sm text-emerald">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{notice}</span>
           </div>
         )}
 
-        {/* Financial Split Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* Left Column (8 cols): Balance Card & Outstanding Records */}
-          <div className="lg:col-span-8 space-y-6">
-            
-            {/* Primary Balance Summary Card */}
-            <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
-              <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="grid items-start gap-5 lg:grid-cols-12">
+          <div className="space-y-5 lg:col-span-7">
+            <section className="rounded-2xl border border-border/80 bg-card p-5 shadow-card sm:p-6">
+              <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
-                    Total Outstanding Balance
-                  </span>
-                  <div className="mt-2 flex items-baseline gap-3">
-                    <span className="text-3xl sm:text-5xl font-bold tracking-tight text-foreground">
-                      {formatCurrency(data?.totalPending ?? 0)}
-                    </span>
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold font-mono ${
-                        isPending
-                          ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
-                          : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                      }`}
-                    >
-                      <span className={`h-1.5 w-1.5 rounded-full ${isPending ? "bg-amber-500" : "bg-emerald-500"}`} />
-                      {isPending ? "Dues Active" : "No Outstanding Dues"}
-                    </span>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Total outstanding balance
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2.5">
+                    <p className="text-[38px] font-semibold leading-none tracking-[-0.04em] text-foreground tabular-nums">
+                      {loading ? "—" : formatCurrency(data?.totalPending ?? 0)}
+                    </p>
+                    <StatusBadge variant={isPending ? "warning" : "success"} size="sm">
+                      {isPending ? "Dues active" : "All clear"}
+                    </StatusBadge>
                   </div>
+                  <p className="mt-2 text-[13px] text-muted-foreground">
+                    {isPending
+                      ? "Settle your balance before the due date to avoid late fees."
+                      : "There are no outstanding maintenance charges."}
+                  </p>
                 </div>
 
-                <div className="text-right">
-                  <span className="text-xs font-mono uppercase text-muted-foreground">Standard Monthly</span>
-                  <p className="text-xl font-bold text-foreground mt-1">
+                <div className="rounded-xl bg-muted/55 px-4 py-3 text-right">
+                  <p className="text-[11px] font-medium text-muted-foreground">
+                    Standard monthly
+                  </p>
+                  <p className="mt-1 text-lg font-semibold text-foreground tabular-nums">
                     {formatCurrency(data?.monthlyAmount ?? 0)}
                   </p>
                 </div>
               </div>
 
-              <div className="my-6 h-px bg-border/60" />
+              <div className="my-5 h-px bg-border/70" />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div className="p-3.5 rounded-xl bg-muted/20 border border-border/60">
-                  <span className="font-mono text-muted-foreground uppercase">Next Due Date</span>
-                  <p className="text-sm font-semibold text-foreground mt-0.5">
-                    {data?.nextDueDate ? formatDate(data.nextDueDate) : "No pending due date"}
-                  </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="flex items-center gap-3 rounded-xl border border-border/70 px-3.5 py-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                    <Wallet className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <p className="text-[11px] text-muted-foreground">Next due date</p>
+                    <p className="mt-0.5 text-[13px] font-medium text-foreground">
+                      {data?.nextDueDate
+                        ? formatDate(data.nextDueDate)
+                        : "No pending due date"}
+                    </p>
+                  </div>
                 </div>
-                <div className="p-3.5 rounded-xl bg-muted/20 border border-border/60">
-                  <span className="font-mono text-muted-foreground uppercase">Compliance Status</span>
-                  <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                    Audited Resident Profile
-                  </p>
+
+                <div className="flex items-center gap-3 rounded-xl border border-border/70 px-3.5 py-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald/10 text-emerald">
+                    <ShieldCheck className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <p className="text-[11px] text-muted-foreground">Account standing</p>
+                    <p className="mt-0.5 text-[13px] font-medium text-foreground">
+                      Audited resident profile
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            </section>
 
-            {/* Individual Pending Invoices Breakdown */}
-            <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
-              <div className="flex items-center justify-between border-b border-border/60 pb-4">
+            <section className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-card">
+              <div className="flex items-center justify-between gap-3 border-b border-border/70 px-5 py-4">
                 <div>
-                  <h3 className="font-bold text-foreground text-base">
-                    Pending Invoices &amp; Charges
-                  </h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Select a cycle to record payment.
+                  <h2 className="text-sm font-medium text-foreground">
+                    Pending invoices
+                  </h2>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Select a billing cycle to record payment.
                   </p>
                 </div>
-                <span className="text-xs font-mono px-2 py-0.5 rounded bg-muted">
-                  {data?.maintenance?.length ?? 0} Pending
+                <span className="rounded-md bg-muted px-2 py-1 text-[10px] font-medium text-muted-foreground">
+                  {data?.maintenance?.length ?? 0} pending
                 </span>
               </div>
 
-              <div className="mt-4 divide-y divide-border/60">
-                {!data?.maintenance?.length && (
-                  <div className="py-12 text-center">
-                    <CheckCircle2 className="mx-auto h-8 w-8 text-emerald-500" />
-                    <p className="mt-3 text-sm font-semibold text-foreground">
-                      You are all caught up!
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      No pending maintenance charges for your residence.
-                    </p>
-                  </div>
-                )}
-
-                {data?.maintenance?.map((record: any) => (
-                  <div
-                    key={record._id}
-                    className="py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors hover:bg-muted/10 -mx-2 px-2 rounded-xl"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-foreground">
-                          Maintenance Fee ({formatDate(record.dueDate)})
-                        </span>
-                        <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 font-semibold">
-                          Due
-                        </span>
+              {!loading && !data?.maintenance?.length ? (
+                <div className="px-5 py-12 text-center">
+                  <CheckCircle2 className="mx-auto h-8 w-8 text-emerald" />
+                  <p className="mt-3 text-sm font-medium text-foreground">
+                    You are all caught up
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    No pending maintenance charges for your residence.
+                  </p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border/60">
+                  {data?.maintenance?.map((record: MaintenanceRecord) => (
+                    <div
+                      key={record._id}
+                      className="flex flex-col gap-4 px-5 py-4 transition-colors hover:bg-muted/25 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-[13px] font-medium text-foreground">
+                            Maintenance fee
+                          </p>
+                          <StatusBadge variant="warning" size="sm">
+                            Due
+                          </StatusBadge>
+                        </div>
+                        <p className="mt-1 text-[11px] text-muted-foreground">
+                          {formatDate(record.dueDate)} · Base{" "}
+                          {formatCurrency(record.monthlyAmount)} · Outstanding{" "}
+                          {formatCurrency(record.pendingAmount)}
+                        </p>
                       </div>
-                      <p className="text-xs text-muted-foreground font-mono">
-                        Base: {formatCurrency(record.monthlyAmount)} &bull; Outstanding: {formatCurrency(record.pendingAmount)}
-                      </p>
+
+                      <div className="flex items-center gap-2.5">
+                        <Link
+                          href={`/maintenance/invoice/${record._id}`}
+                          className="inline-flex h-9 items-center rounded-[9px] border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+                        >
+                          View invoice
+                        </Link>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setPaymentToConfirm({
+                              id: record._id,
+                              amount: record.pendingAmount,
+                            })
+                          }
+                          disabled={paying}
+                          className="inline-flex h-9 items-center rounded-[9px] bg-primary px-3.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+                        >
+                          Pay {formatCurrency(record.pendingAmount)}
+                        </button>
+                      </div>
                     </div>
-
-                    <div className="flex items-center gap-3">
-                      <Link
-                        href={`/maintenance/invoice/${record._id}`}
-                        className="rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-medium text-foreground hover:bg-accent transition"
-                      >
-                        View Invoice
-                      </Link>
-
-                      <button
-                        type="button"
-                        onClick={() => handlePay(record._id, record.pendingAmount)}
-                        disabled={paying}
-                        className="rounded-xl bg-[#315CF5] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#2549d4] transition disabled:opacity-50"
-                      >
-                        {paying ? "Processing..." : `Pay ${formatCurrency(record.pendingAmount)}`}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
+                  ))}
+                </div>
+              )}
+            </section>
           </div>
 
-          {/* Right Column (4 cols): Payment Method Selection & Bank Details */}
-          <div className="lg:col-span-4 space-y-6">
-            
-            <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
-              <span className="text-xs font-mono uppercase tracking-wider text-[#315CF5] font-semibold">
-                Settlement Channel
-              </span>
-              <h3 className="mt-1 text-lg font-bold text-foreground">
-                Payment Method
-              </h3>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Choose your preferred mode for this transaction.
+          <div className="space-y-5 lg:col-span-5">
+            <section className="rounded-2xl border border-border/80 bg-card p-5 shadow-card sm:p-6">
+              <h2 className="text-sm font-medium text-foreground">
+                Payment method
+              </h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Choose how you want this payment recorded.
               </p>
 
-              <div className="mt-5 space-y-2.5">
-                {PAYMENT_METHODS.map((pm) => (
-                  <label
-                    key={pm.value}
-                    className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                      method === pm.value
-                        ? "border-[#315CF5] bg-[#315CF5]/5 text-foreground"
-                        : "border-border/60 hover:bg-muted/20 text-muted-foreground"
-                    }`}
+              <div className="mt-4 space-y-2">
+                {PAYMENT_METHODS.map((option) => {
+                  const Icon = option.icon;
+                  const active = method === option.value;
+
+                  return (
+                    <label
+                      key={option.value}
+                      className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${
+                        active
+                          ? "border-primary/30 bg-accent"
+                          : "border-border/70 hover:bg-muted/50"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="payment_method"
+                        value={option.value}
+                        checked={active}
+                        onChange={() => setMethod(option.value)}
+                        className="sr-only"
+                      />
+
+                      <span
+                        className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                          active
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        <Icon className="h-4 w-4" />
+                      </span>
+
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-xs font-medium text-foreground">
+                          {option.label}
+                        </span>
+                        <span className="mt-0.5 block text-[11px] leading-relaxed text-muted-foreground">
+                          {option.desc}
+                        </span>
+                      </span>
+
+                      <span
+                        className={`mt-2 h-3.5 w-3.5 shrink-0 rounded-full border ${
+                          active
+                            ? "border-primary bg-primary ring-2 ring-primary/15 ring-inset"
+                            : "border-input"
+                        }`}
+                      />
+                    </label>
+                  );
+                })}
+              </div>
+
+              <div className="mt-4 space-y-1.5 border-t border-border/70 pt-4">
+                {[
+                  "Instant invoice generation",
+                  "Bank-audited reconciliation",
+                  "Treasurer notification",
+                ].map((item) => (
+                  <p
+                    key={item}
+                    className="flex items-center gap-2 text-[11px] text-muted-foreground"
                   >
-                    <input
-                      type="radio"
-                      name="payment_method"
-                      value={pm.value}
-                      checked={method === pm.value}
-                      onChange={() => setMethod(pm.value)}
-                      className="mt-1 text-[#315CF5] focus:ring-[#315CF5]"
-                    />
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-foreground">
-                        {pm.label}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">
-                        {pm.desc}
-                      </p>
-                    </div>
-                  </label>
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald" />
+                    {item}
+                  </p>
                 ))}
               </div>
+            </section>
 
-              <div className="mt-6 pt-4 border-t border-border/60 text-[11px] font-mono text-muted-foreground space-y-1">
-                <p>✓ Instant official invoice generation</p>
-                <p>✓ Bank-audited reconciliation</p>
-                <p>✓ Society treasurer notification</p>
+            <section className="rounded-2xl border border-border/80 bg-muted/35 p-5">
+              <div className="flex items-center gap-2">
+                <Landmark className="h-4 w-4 text-muted-foreground" />
+                <h2 className="text-xs font-medium text-foreground">
+                  Direct transfer details
+                </h2>
               </div>
-            </div>
 
-            {/* Society Bank Details Card */}
-            <div className="rounded-2xl border border-border/80 bg-muted/20 p-5 text-xs font-mono space-y-2">
-              <span className="text-[10px] uppercase font-semibold text-muted-foreground block">
-                Direct Transfer Details:
-              </span>
-              <p className="text-foreground font-semibold font-sans">Palm Grove Co-op Housing Society Ltd.</p>
-              <div className="divide-y divide-border/40 text-muted-foreground">
-                <div className="py-1 flex justify-between">
-                  <span>A/C No:</span>
-                  <span className="text-foreground">50200049281921</span>
-                </div>
-                <div className="py-1 flex justify-between">
-                  <span>IFSC:</span>
-                  <span className="text-foreground">HDFC0001284</span>
-                </div>
-                <div className="py-1 flex justify-between">
-                  <span>Branch:</span>
-                  <span className="text-foreground">Bandra West, Mumbai</span>
-                </div>
+              <p className="mt-3 text-[13px] font-medium text-foreground">
+                Palm Grove Co-op Housing Society Ltd.
+              </p>
+
+              <div className="mt-2 divide-y divide-border/70 text-[11px]">
+                <DetailRow label="Account number" value="50200049281921" />
+                <DetailRow label="IFSC" value="HDFC0001284" />
+                <DetailRow label="Branch" value="Bandra West, Mumbai" />
               </div>
-            </div>
-
+            </section>
           </div>
-
         </div>
-
       </div>
+
+      {paymentToConfirm && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+          <div
+            className="absolute inset-0 bg-foreground/30 backdrop-blur-[2px]"
+            onClick={() => !paying && setPaymentToConfirm(null)}
+            aria-hidden
+          />
+
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="payment-dialog-title"
+            className="relative w-full max-w-md rounded-2xl border border-border/80 bg-card p-5 shadow-2xl"
+          >
+            <button
+              type="button"
+              onClick={() => setPaymentToConfirm(null)}
+              disabled={paying}
+              aria-label="Close"
+              className="absolute right-3.5 top-3.5 flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            <span className="flex h-10 w-10 items-center justify-center rounded-[11px] bg-accent text-accent-foreground">
+              <Wallet className="h-4.5 w-4.5" />
+            </span>
+
+            <h2
+              id="payment-dialog-title"
+              className="mt-4 text-lg font-semibold tracking-tight text-foreground"
+            >
+              Confirm payment
+            </h2>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              This records the payment immediately and generates an official
+              receipt for your account.
+            </p>
+
+            <dl className="mt-4 space-y-2 rounded-xl bg-muted/55 p-3.5 text-xs">
+              <div className="flex items-center justify-between gap-3">
+                <dt className="text-muted-foreground">Amount</dt>
+                <dd className="font-semibold text-foreground tabular-nums">
+                  {formatCurrency(paymentToConfirm.amount)}
+                </dd>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <dt className="text-muted-foreground">Method</dt>
+                <dd className="font-medium text-foreground">
+                  {selectedMethod.label}
+                </dd>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <dt className="text-muted-foreground">Society</dt>
+                <dd className="text-right font-medium text-foreground">
+                  Palm Grove Residency
+                </dd>
+              </div>
+            </dl>
+
+            <div className="mt-5 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setPaymentToConfirm(null)}
+                disabled={paying}
+                className="flex h-10 flex-1 items-center justify-center rounded-[10px] border border-border bg-card text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmPayment}
+                disabled={paying}
+                className="flex h-10 flex-[1.4] items-center justify-center gap-2 rounded-[10px] bg-primary text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+              >
+                {paying ? "Recording payment..." : "Confirm payment"}
+                {!paying && <ArrowUpRight className="h-3.5 w-3.5" />}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppShell>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-1.5">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-right font-medium text-foreground">{value}</span>
+    </div>
   );
 }

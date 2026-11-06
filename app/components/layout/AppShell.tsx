@@ -13,7 +13,13 @@ import type { Profile, ProfileResponse } from "@/app/lib/types";
  * The profile is fetched once here so the navbar and the admin-only navigation
  * can show the real signed-in user instead of placeholder text.
  */
-export default function AppShell({ children }: { children: ReactNode }) {
+export default function AppShell({
+  children,
+  fullBleed = false,
+}: {
+  children: ReactNode;
+  fullBleed?: boolean;
+}) {
   const [user, setUser] = useState<Profile | null>(null);
 
   useEffect(() => {
@@ -41,13 +47,21 @@ export default function AppShell({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background selection:bg-primary/20">
       <Navbar user={user} />
 
       <div className="flex">
-        <Sidebar role={user?.role} />
+        <Sidebar role={user?.role} user={user} />
 
-        <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+        <main
+          className={
+            fullBleed
+              ? "h-[calc(100dvh-3.5rem)] min-w-0 flex-1 overflow-hidden md:h-dvh"
+              : "min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10"
+          }
+        >
+          {children}
+        </main>
       </div>
     </div>
   );

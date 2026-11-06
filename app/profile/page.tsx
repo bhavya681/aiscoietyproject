@@ -2,11 +2,28 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { User, Mail, Shield, Calendar, KeyRound, AlertTriangle, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  CalendarDays,
+  CheckCircle2,
+  KeyRound,
+  Mail,
+  MapPin,
+  Phone,
+  Shield,
+  User,
+} from "lucide-react";
 
 import AppShell from "../components/layout/AppShell";
+import PageHeader from "@/app/components/ui/PageHeader";
+import StatusBadge from "@/app/components/ui/StatusBadge";
 import { apiFetch } from "@/app/lib/api";
-import { formatDate, type Profile, type ProfileResponse } from "@/app/lib/types";
+import {
+  formatDate,
+  type Profile,
+  type ProfileResponse,
+} from "@/app/lib/types";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -24,7 +41,6 @@ export default function ProfilePage() {
     newPassword: "",
   });
   const [savingPassword, setSavingPassword] = useState(false);
-
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
@@ -142,210 +158,250 @@ export default function ProfilePage() {
     }
   }
 
+  const initials = (profile?.name || "R")
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
     <AppShell>
-      <div className="mx-auto max-w-3xl space-y-8">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-            <User className="h-4 w-4" />
-            <span>Account Management</span>
-          </div>
-          <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-foreground">
-            Resident Profile
-          </h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            View your resident details, update contact records, or modify credentials.
-          </p>
-        </div>
+      <div className="mx-auto max-w-5xl space-y-7">
+        <PageHeader
+          eyebrow="Account"
+          title="Profile and settings"
+          description="Keep your resident details current and manage the security of your account."
+        />
 
         {error && (
-          <div className="flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            <AlertCircle className="h-5 w-5 shrink-0" />
+          <div className="flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/[0.06] px-4 py-3 text-sm text-destructive">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {notice && (
-          <div className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-500">
-            <CheckCircle2 className="h-5 w-5 shrink-0" />
+          <div className="flex items-start gap-2.5 rounded-xl border border-emerald/20 bg-emerald/[0.07] px-4 py-3 text-sm text-emerald">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{notice}</span>
           </div>
         )}
 
         {loading ? (
-          <div className="py-16 text-center text-sm text-muted-foreground">
-            Loading profile information...
+          <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-card">
+            <div className="h-16 w-16 animate-pulse rounded-full bg-muted" />
+            <div className="mt-4 h-5 w-40 animate-pulse rounded bg-muted" />
+            <div className="mt-2 h-3 w-56 animate-pulse rounded bg-muted" />
           </div>
         ) : (
-          <div className="space-y-6">
-            {/* Account Details Card */}
-            <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-              <h2 className="text-base font-bold text-foreground">
-                Account Details
-              </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Official residency identity registered with society management.
-              </p>
+          <div className="grid items-start gap-5 lg:grid-cols-[280px_1fr]">
+            <aside className="space-y-4 lg:sticky lg:top-24">
+              <section className="rounded-2xl border border-border/80 bg-card p-5 shadow-card">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-base font-semibold text-primary-foreground">
+                  {initials}
+                </div>
+                <h2 className="mt-4 text-base font-semibold tracking-tight text-foreground">
+                  {profile?.name ?? "Resident"}
+                </h2>
+                <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                  {profile?.email ?? "—"}
+                </p>
+                <div className="mt-3">
+                  <StatusBadge variant="info" size="sm" className="capitalize">
+                    {profile?.role ?? "resident"}
+                  </StatusBadge>
+                </div>
 
-              <dl className="mt-5 grid gap-4 sm:grid-cols-3">
-                <ReadOnly
-                  icon={Mail}
-                  label="Email"
-                  value={profile?.email ?? "-"}
-                />
-                <ReadOnly
-                  icon={Shield}
-                  label="Role"
-                  value={profile?.role ?? "-"}
-                />
-                <ReadOnly
-                  icon={Calendar}
-                  label="Member since"
-                  value={formatDate(profile?.createdAt)}
-                />
-              </dl>
+                <div className="mt-5 space-y-3 border-t border-border/70 pt-4 text-xs">
+                  <InfoRow icon={Mail} label="Email" value={profile?.email ?? "—"} />
+                  <InfoRow
+                    icon={Shield}
+                    label="Role"
+                    value={profile?.role ?? "resident"}
+                    capitalize
+                  />
+                  <InfoRow
+                    icon={CalendarDays}
+                    label="Member since"
+                    value={formatDate(profile?.createdAt)}
+                  />
+                </div>
 
-              <p className="mt-4 text-xs text-muted-foreground/80">
-                Email and society roles are strictly managed by your society administrator.
-              </p>
-            </section>
+                <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">
+                  Email and society roles are managed by your administrator.
+                </p>
+              </section>
 
-            {/* Edit details form */}
-            <form
-              onSubmit={handleSaveProfile}
-              className="rounded-2xl border border-border bg-card p-6 shadow-sm"
-            >
-              <h2 className="text-base font-bold text-foreground">
-                Edit Contact Details
-              </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Keep your resident address and phone numbers up to date.
-              </p>
+              <section className="rounded-2xl border border-border/80 bg-muted/35 p-4">
+                <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+                  <KeyRound className="h-3.5 w-3.5 text-primary" />
+                  Account security
+                </div>
+                <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                  Use a unique password and update it if you notice unusual
+                  activity.
+                </p>
+              </section>
+            </aside>
 
-              <div className="mt-5 space-y-4">
-                <Field
-                  label="Full Name"
-                  value={form.name}
-                  onChange={(value) =>
-                    setForm((previous) => ({ ...previous, name: value }))
-                  }
-                />
-
-                <Field
-                  label="Phone Number"
-                  value={form.phone}
-                  onChange={(value) =>
-                    setForm((previous) => ({ ...previous, phone: value }))
-                  }
-                />
-
-                <label className="block">
-                  <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Flat / House Address
+            <div className="space-y-5">
+              <form
+                onSubmit={handleSaveProfile}
+                className="rounded-2xl border border-border/80 bg-card p-5 shadow-card sm:p-6"
+              >
+                <div className="flex items-start gap-2.5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-accent text-accent-foreground">
+                    <User className="h-4 w-4" />
                   </span>
+                  <div>
+                    <h2 className="text-sm font-medium text-foreground">
+                      Contact details
+                    </h2>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Used by the society office to reach you.
+                    </p>
+                  </div>
+                </div>
 
-                  <textarea
-                    value={form.address}
-                    onChange={(event) =>
-                      setForm((previous) => ({
+                <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                  <InputField
+                    label="Full name"
+                    value={form.name}
+                    onChange={(value) =>
+                      setForm((previous) => ({ ...previous, name: value }))
+                    }
+                    icon={User}
+                  />
+                  <InputField
+                    label="Phone number"
+                    value={form.phone}
+                    onChange={(value) =>
+                      setForm((previous) => ({ ...previous, phone: value }))
+                    }
+                    icon={Phone}
+                  />
+                </div>
+
+                <label className="mt-4 block">
+                  <span className="mb-1.5 block text-xs font-medium text-foreground">
+                    Flat / house address
+                  </span>
+                  <span className="relative block">
+                    <MapPin className="pointer-events-none absolute left-3.5 top-3.5 h-4 w-4 text-muted-foreground" />
+                    <textarea
+                      value={form.address}
+                      onChange={(event) =>
+                        setForm((previous) => ({
+                          ...previous,
+                          address: event.target.value,
+                        }))
+                      }
+                      required
+                      rows={3}
+                      className="min-h-[88px] w-full resize-none rounded-[10px] border border-input bg-card py-3 pl-10 pr-3.5 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-4 focus:ring-primary/10"
+                    />
+                  </span>
+                </label>
+
+                <div className="mt-5 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={savingProfile}
+                    className="inline-flex h-10 items-center justify-center rounded-[10px] bg-primary px-4 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    {savingProfile ? "Saving..." : "Save changes"}
+                  </button>
+                </div>
+              </form>
+
+              <form
+                onSubmit={handleChangePassword}
+                className="rounded-2xl border border-border/80 bg-card p-5 shadow-card sm:p-6"
+              >
+                <div className="flex items-start gap-2.5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-muted text-muted-foreground">
+                    <KeyRound className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <h2 className="text-sm font-medium text-foreground">
+                      Password
+                    </h2>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Choose a strong password you do not use elsewhere.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                  <InputField
+                    label="Current password"
+                    type="password"
+                    value={passwords.currentPassword}
+                    onChange={(value) =>
+                      setPasswords((previous) => ({
                         ...previous,
-                        address: event.target.value,
+                        currentPassword: value,
                       }))
                     }
-                    required
-                    rows={3}
-                    className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
-                </label>
-              </div>
+                  <InputField
+                    label="New password"
+                    type="password"
+                    value={passwords.newPassword}
+                    onChange={(value) =>
+                      setPasswords((previous) => ({
+                        ...previous,
+                        newPassword: value,
+                      }))
+                    }
+                  />
+                </div>
 
-              <div className="mt-6">
-                <button
-                  type="submit"
-                  disabled={savingProfile}
-                  className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 disabled:opacity-50"
-                >
-                  {savingProfile ? "Saving Details..." : "Save Changes"}
-                </button>
-              </div>
-            </form>
+                <p className="mt-3 text-[11px] text-muted-foreground">
+                  Must be at least 8 characters.
+                </p>
 
-            {/* Change password form */}
-            <form
-              onSubmit={handleChangePassword}
-              className="rounded-2xl border border-border bg-card p-6 shadow-sm"
-            >
-              <div className="flex items-center gap-2">
-                <KeyRound className="h-4 w-4 text-primary" />
-                <h2 className="text-base font-bold text-foreground">
-                  Security & Password
-                </h2>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Ensure your account is protected with a strong, distinct password.
-              </p>
+                <div className="mt-5 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={savingPassword}
+                    className="inline-flex h-10 items-center justify-center rounded-[10px] border border-border bg-card px-4 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-50"
+                  >
+                    {savingPassword ? "Updating..." : "Update password"}
+                  </button>
+                </div>
+              </form>
 
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <Field
-                  label="Current Password"
-                  type="password"
-                  value={passwords.currentPassword}
-                  onChange={(value) =>
-                    setPasswords((previous) => ({
-                      ...previous,
-                      currentPassword: value,
-                    }))
-                  }
-                />
+              <section className="rounded-2xl border border-destructive/25 bg-destructive/[0.035] p-5 sm:p-6">
+                <div className="flex items-start gap-2.5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-destructive/10 text-destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <h2 className="text-sm font-medium text-destructive">
+                      Delete account
+                    </h2>
+                    <p className="mt-1 max-w-xl text-xs leading-relaxed text-muted-foreground">
+                      This permanently removes your profile and all associated
+                      maintenance, payment, and invoice records. This action
+                      cannot be undone.
+                    </p>
+                  </div>
+                </div>
 
-                <Field
-                  label="New Password"
-                  type="password"
-                  value={passwords.newPassword}
-                  onChange={(value) =>
-                    setPasswords((previous) => ({
-                      ...previous,
-                      newPassword: value,
-                    }))
-                  }
-                />
-              </div>
-
-              <p className="mt-3 text-xs text-muted-foreground">
-                Must be at least 8 characters in length.
-              </p>
-
-              <div className="mt-6">
-                <button
-                  type="submit"
-                  disabled={savingPassword}
-                  className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 disabled:opacity-50"
-                >
-                  {savingPassword ? "Updating..." : "Update Password"}
-                </button>
-              </div>
-            </form>
-
-            {/* Danger zone */}
-            <section className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6">
-              <div className="flex items-center gap-2 text-destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <h2 className="text-base font-bold">Danger Zone</h2>
-              </div>
-
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                Permanently eliminate your user profile and all associated data records, including historical dues and maintenance receipts.
-              </p>
-
-              <button
-                type="button"
-                onClick={handleDeleteAccount}
-                disabled={deleting}
-                className="mt-4 inline-flex items-center justify-center rounded-xl border border-destructive/50 bg-background px-4 py-2.5 text-xs font-bold text-destructive transition hover:bg-destructive/10 disabled:opacity-50"
-              >
-                {deleting ? "Deleting Account..." : "Permanently Delete My Account"}
-              </button>
-            </section>
+                <div className="mt-4 pl-[46px]">
+                  <button
+                    type="button"
+                    onClick={handleDeleteAccount}
+                    disabled={deleting}
+                    className="inline-flex h-9 items-center justify-center rounded-[9px] border border-destructive/30 bg-card px-3 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
+                  >
+                    {deleting ? "Deleting account..." : "Delete my account"}
+                  </button>
+                </div>
+              </section>
+            </div>
           </div>
         )}
       </div>
@@ -353,52 +409,66 @@ export default function ProfilePage() {
   );
 }
 
-function ReadOnly({
+function InfoRow({
   icon: Icon,
   label,
   value,
+  capitalize,
 }: {
-  icon?: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
+  capitalize?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-border/60 bg-muted/40 p-3.5">
-      <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {Icon && <Icon className="h-3.5 w-3.5 text-primary" />}
-        <span>{label}</span>
+    <div className="flex items-start gap-2.5">
+      <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+      <div className="min-w-0">
+        <p className="text-[10px] font-medium text-muted-foreground">{label}</p>
+        <p
+          className={`mt-0.5 break-all text-[11px] font-medium text-foreground ${
+            capitalize ? "capitalize" : ""
+          }`}
+        >
+          {value}
+        </p>
       </div>
-      <dd className="mt-1 text-sm font-bold capitalize text-foreground">
-        {value}
-      </dd>
     </div>
   );
 }
 
-function Field({
+function InputField({
   label,
+  type = "text",
   value,
   onChange,
-  type = "text",
+  icon: Icon,
 }: {
   label: string;
+  type?: string;
   value: string;
   onChange: (value: string) => void;
-  type?: string;
+  icon?: React.ComponentType<{ className?: string }>;
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <span className="mb-1.5 block text-xs font-medium text-foreground">
         {label}
       </span>
-
-      <input
-        type={type}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        required
-        className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
-      />
+      <span className="relative block">
+        {Icon && (
+          <Icon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        )}
+        <input
+          type={type}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          required
+          className={`h-10 w-full rounded-[10px] border border-input bg-card pr-3.5 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-4 focus:ring-primary/10 ${
+            Icon ? "pl-10" : "pl-3.5"
+          }`}
+        />
+      </span>
     </label>
   );
 }

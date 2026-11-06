@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useTheme } from "@/app/lib/theme";
 import ThemeToggle from "@/app/components/ui/ThemeToggle";
@@ -9,29 +10,14 @@ import {
   Menu,
   X,
   Sparkles,
-  ShieldCheck,
-  Receipt,
-  CreditCard,
-  Building2,
-  Users,
-  Search,
   CheckCircle2,
   Send,
-  Calendar,
-  Layers,
   ChevronRight,
-  TrendingUp,
-  FileText,
-  Clock,
-  MessageSquare,
-  BadgeCheck,
-  Check
 } from "lucide-react";
 
 export default function Home() {
   const { resolved } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"pending" | "history">("pending");
   const [activeAiDemo, setActiveAiDemo] = useState(0);
 
   // Close mobile menu on resize to desktop
@@ -67,26 +53,28 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] dark:bg-[#090A0D] text-[#101114] dark:text-[#F8FAFC] selection:bg-[#315CF5] selection:text-white transition-colors duration-300">
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground transition-colors duration-300">
       
       {/* ========================================================
           1. NAVIGATION (Legency Media style: minimal, tactile, clean)
          ======================================================== */}
-      <header className="sticky top-0 z-50 border-b border-black/[0.06] dark:border-white/[0.08] bg-[#F7F8FA]/85 dark:bg-[#090A0D]/85 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-black/[0.06] dark:border-white/[0.08] bg-background/85 dark:bg-background/85 backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 sm:px-8">
           
           {/* Brand Logo & Editorial Wordmark */}
           <Link href="/" className="group flex items-center gap-3">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white dark:bg-[#14151B] border border-black/[0.08] dark:border-white/[0.1] shadow-sm transition-transform duration-200 group-hover:scale-105">
-              <img
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white dark:bg-card border border-black/[0.08] dark:border-white/[0.1] shadow-sm transition-transform duration-200 group-hover:scale-105">
+              <Image
                 src={resolved === "dark" ? "/logo.png" : "/logo-light.png"}
                 alt="SocietyAI Logo"
+                width={24}
+                height={24}
                 className="h-6 w-6 object-contain"
               />
             </div>
             <div className="flex flex-col">
               <span className="font-semibold text-lg tracking-tight-editorial font-sans leading-none flex items-center gap-1.5">
-                Society<span className="text-[#315CF5]">AI</span>
+                Society<span className="text-primary">AI</span>
                 <span className="hidden sm:inline-block px-1.5 py-0.5 rounded text-[10px] font-mono font-medium tracking-normal uppercase bg-black/[0.05] dark:bg-white/[0.08] text-muted-foreground">
                   v2.4
                 </span>
@@ -101,26 +89,26 @@ export default function Home() {
           <nav className="hidden items-center gap-9 md:flex">
             <Link
               href="#platform"
-              className="text-sm font-medium text-[#626773] dark:text-[#94A3B8] transition-colors hover:text-[#101114] dark:hover:text-white"
+              className="text-sm font-medium text-muted-foreground dark:text-muted-foreground transition-colors hover:text-foreground dark:hover:text-white"
             >
               Platform
             </Link>
             <Link
               href="#features"
-              className="text-sm font-medium text-[#626773] dark:text-[#94A3B8] transition-colors hover:text-[#101114] dark:hover:text-white"
+              className="text-sm font-medium text-muted-foreground dark:text-muted-foreground transition-colors hover:text-foreground dark:hover:text-white"
             >
               Capabilities
             </Link>
             <Link
               href="#ai"
-              className="text-sm font-medium text-[#626773] dark:text-[#94A3B8] transition-colors hover:text-[#101114] dark:hover:text-white flex items-center gap-1.5"
+              className="text-sm font-medium text-muted-foreground dark:text-muted-foreground transition-colors hover:text-foreground dark:hover:text-white flex items-center gap-1.5"
             >
               <span>AI Assistant</span>
-              <span className="h-1.5 w-1.5 rounded-full bg-[#315CF5] animate-pulse" />
+              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
             </Link>
             <Link
               href="#workflow"
-              className="text-sm font-medium text-[#626773] dark:text-[#94A3B8] transition-colors hover:text-[#101114] dark:hover:text-white"
+              className="text-sm font-medium text-muted-foreground dark:text-muted-foreground transition-colors hover:text-foreground dark:hover:text-white"
             >
               Workflow
             </Link>
@@ -132,14 +120,14 @@ export default function Home() {
 
             <Link
               href="/login"
-              className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium text-[#626773] dark:text-[#94A3B8] hover:text-[#101114] dark:hover:text-white transition-colors"
+              className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium text-muted-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors"
             >
               Sign In
             </Link>
 
             <Link
               href="/signup"
-              className="bubble-cta bubble-cta-blue"
+              className="bubble-cta bubble-cta-primary"
             >
               <span>Get Started</span>
               <span className="bubble-cta-arrow">
@@ -161,7 +149,7 @@ export default function Home() {
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="border-b border-black/[0.08] dark:border-white/[0.1] bg-[#F7F8FA] dark:bg-[#090A0D] px-6 py-6 md:hidden">
+          <div className="border-b border-black/[0.08] dark:border-white/[0.1] bg-background dark:bg-background px-6 py-6 md:hidden">
             <div className="flex flex-col gap-4">
               <Link
                 href="#platform"
@@ -202,7 +190,7 @@ export default function Home() {
                 <Link
                   href="/signup"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2.5 rounded-xl bg-[#315CF5] text-white text-sm font-medium"
+                  className="w-full text-center py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium"
                 >
                   Create Account
                 </Link>
@@ -221,12 +209,12 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-black/[0.08] dark:border-white/[0.08] pb-6">
             <div className="inline-flex items-center gap-2.5">
-              <span className="flex h-2 w-2 rounded-full bg-[#315CF5] animate-ping" />
-              <span className="text-xs uppercase tracking-widest font-mono text-[#626773] dark:text-[#94A3B8]">
+              <span className="flex h-2 w-2 rounded-full bg-primary animate-ping" />
+              <span className="text-xs uppercase tracking-widest font-mono text-muted-foreground dark:text-muted-foreground">
                 Next-Gen Residential Intelligence
               </span>
             </div>
-            <div className="hidden sm:flex items-center gap-6 text-xs font-mono text-[#626773] dark:text-[#94A3B8]">
+            <div className="hidden sm:flex items-center gap-6 text-xs font-mono text-muted-foreground dark:text-muted-foreground">
               <span>RAG RETRIEVAL 2.0</span>
               <span>•</span>
               <span>INSTANT RECONCILIATION</span>
@@ -237,9 +225,9 @@ export default function Home() {
 
           {/* Hero Headline — Bold, Editorial, Confident */}
           <div className="mt-12 sm:mt-16 max-w-5xl">
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl xl:text-[84px] font-semibold tracking-tighter-editorial leading-[0.98] text-[#101114] dark:text-[#F8FAFC]">
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl xl:text-[84px] font-semibold tracking-tighter-editorial leading-[0.98] text-foreground dark:text-foreground">
               Society management. <br />
-              <span className="text-[#315CF5] inline-block mt-1 sm:mt-2">
+              <span className="text-primary inline-block mt-1 sm:mt-2">
                 Reimagined with AI.
               </span>
             </h1>
@@ -248,14 +236,14 @@ export default function Home() {
           {/* Two-Column Pitch & Action Bar */}
           <div className="mt-8 sm:mt-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-end border-b border-black/[0.08] dark:border-white/[0.08] pb-12">
             <div className="lg:col-span-7">
-              <p className="text-lg sm:text-xl md:text-2xl font-normal leading-relaxed text-[#626773] dark:text-[#94A3B8] max-w-2xl">
+              <p className="text-lg sm:text-xl md:text-2xl font-normal leading-relaxed text-muted-foreground dark:text-muted-foreground max-w-2xl">
                 Manage maintenance, track payments, access invoices, and get instant answers with an AI assistant built for modern residential communities.
               </p>
             </div>
             <div className="lg:col-span-5 flex flex-wrap items-center gap-4 sm:justify-end">
               <Link
                 href="/signup"
-                className="bubble-cta bubble-cta-blue text-base py-2.5 px-6"
+                className="bubble-cta bubble-cta-primary text-base py-2.5 px-6"
               >
                 <span>Get Started Now</span>
                 <span className="bubble-cta-arrow">
@@ -277,34 +265,34 @@ export default function Home() {
           {/* Proof / Metric Pillars — Legency Media inspired */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 py-8 border-b border-black/[0.08] dark:border-white/[0.08]">
             <div className="flex flex-col">
-              <span className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#101114] dark:text-white">
+              <span className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground dark:text-white">
                 100%
               </span>
-              <span className="text-xs sm:text-sm text-[#626773] dark:text-[#94A3B8] font-normal mt-1">
+              <span className="text-xs sm:text-sm text-muted-foreground dark:text-muted-foreground font-normal mt-1">
                 Automated invoice dispatch
               </span>
             </div>
             <div className="flex flex-col">
-              <span className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#101114] dark:text-white">
+              <span className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground dark:text-white">
                 &lt; 2s
               </span>
-              <span className="text-xs sm:text-sm text-[#626773] dark:text-[#94A3B8] font-normal mt-1">
+              <span className="text-xs sm:text-sm text-muted-foreground dark:text-muted-foreground font-normal mt-1">
                 AI response query latency
               </span>
             </div>
             <div className="flex flex-col">
-              <span className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#101114] dark:text-white">
+              <span className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground dark:text-white">
                 ₹0 Leakage
               </span>
-              <span className="text-xs sm:text-sm text-[#626773] dark:text-[#94A3B8] font-normal mt-1">
+              <span className="text-xs sm:text-sm text-muted-foreground dark:text-muted-foreground font-normal mt-1">
                 Audited ledger reconciliation
               </span>
             </div>
             <div className="flex flex-col">
-              <span className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#101114] dark:text-white">
+              <span className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground dark:text-white">
                 24/7
               </span>
-              <span className="text-xs sm:text-sm text-[#626773] dark:text-[#94A3B8] font-normal mt-1">
+              <span className="text-xs sm:text-sm text-muted-foreground dark:text-muted-foreground font-normal mt-1">
                 Bylaws &amp; dues assistant
               </span>
             </div>
@@ -312,7 +300,7 @@ export default function Home() {
 
           {/* Hero Visual: Realistic Studio Product Interface Showcase */}
           <div className="mt-12 sm:mt-16">
-            <div className="relative rounded-2xl sm:rounded-3xl border border-black/[0.1] dark:border-white/[0.12] bg-white dark:bg-[#111217] p-3 sm:p-5 shadow-2xl shadow-black/10 dark:shadow-black/60">
+            <div className="relative rounded-2xl sm:rounded-3xl border border-black/[0.1] dark:border-white/[0.12] bg-card p-3 sm:p-5 shadow-2xl shadow-black/10 dark:shadow-black/60">
               
               {/* Studio Browser Header */}
               <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] pb-3 px-2">
@@ -339,11 +327,11 @@ export default function Home() {
                 <div className="lg:col-span-7 flex flex-col gap-5">
                   
                   {/* Resident Header Card */}
-                  <div className="rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-[#F7F8FA]/60 dark:bg-[#181920]/60 p-5">
+                  <div className="rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-background/60 dark:bg-card/60 p-5">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono uppercase text-[#315CF5] font-semibold">
+                          <span className="text-xs font-mono uppercase text-primary font-semibold">
                             RESIDENCE B-402
                           </span>
                           <span className="text-xs text-muted-foreground">• Palm Grove Residency</span>
@@ -354,7 +342,7 @@ export default function Home() {
                       </div>
                       <Link
                         href="/maintenance"
-                        className="rounded-lg bg-[#315CF5] px-3.5 py-1.5 text-xs font-medium text-white hover:bg-[#2549d4] transition"
+                        className="rounded-lg bg-primary px-3.5 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition"
                       >
                         Pay Maintenance
                       </Link>
@@ -362,7 +350,7 @@ export default function Home() {
 
                     {/* Metrics Grid */}
                     <div className="mt-5 grid grid-cols-3 gap-3">
-                      <div className="rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-white dark:bg-[#121319] p-3.5">
+                      <div className="rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-card p-3.5">
                         <span className="text-xs text-muted-foreground font-medium">Pending Dues</span>
                         <div className="mt-1 flex items-baseline gap-1">
                           <span className="text-xl sm:text-2xl font-bold text-amber-600 dark:text-amber-400">₹4,000</span>
@@ -370,7 +358,7 @@ export default function Home() {
                         <span className="text-[11px] text-muted-foreground">Due Oct 10, 2026</span>
                       </div>
 
-                      <div className="rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-white dark:bg-[#121319] p-3.5">
+                      <div className="rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-card p-3.5">
                         <span className="text-xs text-muted-foreground font-medium">Last Payment</span>
                         <div className="mt-1 flex items-baseline gap-1">
                           <span className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">₹4,000</span>
@@ -378,7 +366,7 @@ export default function Home() {
                         <span className="text-[11px] text-emerald-600 dark:text-emerald-400">✓ Sept Verified</span>
                       </div>
 
-                      <div className="rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-white dark:bg-[#121319] p-3.5">
+                      <div className="rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-card p-3.5">
                         <span className="text-xs text-muted-foreground font-medium">Invoices Issued</span>
                         <div className="mt-1 flex items-baseline gap-1">
                           <span className="text-xl sm:text-2xl font-bold text-foreground">12</span>
@@ -389,12 +377,12 @@ export default function Home() {
                   </div>
 
                   {/* Transactions / Invoices Table snippet */}
-                  <div className="rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-white dark:bg-[#121319] p-4">
+                  <div className="rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-card p-4">
                     <div className="flex items-center justify-between pb-3 border-b border-border/40">
                       <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground font-medium">
                         Recent Billing &amp; Receipts
                       </span>
-                      <Link href="/maintenance" className="text-xs text-[#315CF5] font-medium hover:underline">
+                      <Link href="/maintenance" className="text-xs text-primary font-medium hover:underline">
                         View All
                       </Link>
                     </div>
@@ -417,7 +405,7 @@ export default function Home() {
 
                       <div className="py-2.5 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-lg bg-blue-500/10 text-[#315CF5] flex items-center justify-center font-bold text-xs">
+                          <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
                             RCP
                           </div>
                           <div>
@@ -435,11 +423,11 @@ export default function Home() {
                 </div>
 
                 {/* Right 5 Columns: AI Copilot Assistant Widget Showcase */}
-                <div className="lg:col-span-5 flex flex-col justify-between rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-[#F7F8FA]/80 dark:bg-[#16171E] p-4 sm:p-5">
+                <div className="lg:col-span-5 flex flex-col justify-between rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-background/80 dark:bg-card p-4 sm:p-5">
                   <div>
                     <div className="flex items-center justify-between border-b border-border/50 pb-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#315CF5] text-white">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                           <Sparkles className="h-4 w-4" />
                         </div>
                         <div>
@@ -452,12 +440,12 @@ export default function Home() {
 
                     {/* Chat Bubble Showcase */}
                     <div className="mt-4 space-y-3">
-                      <div className="ml-auto max-w-[85%] rounded-2xl rounded-tr-sm bg-[#315CF5] px-3.5 py-2.5 text-xs text-white shadow-sm">
+                      <div className="ml-auto max-w-[85%] rounded-2xl rounded-tr-sm bg-primary px-3.5 py-2.5 text-xs text-primary-foreground shadow-sm">
                         How much maintenance do I have pending?
                       </div>
 
-                      <div className="mr-auto max-w-[90%] rounded-2xl rounded-tl-sm border border-black/[0.06] dark:border-white/[0.08] bg-white dark:bg-[#121319] p-3 text-xs shadow-sm">
-                        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#315CF5] mb-1">
+                      <div className="mr-auto max-w-[90%] rounded-2xl rounded-tl-sm border border-black/[0.06] dark:border-white/[0.08] bg-card p-3 text-xs shadow-sm">
+                        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-primary mb-1">
                           <Sparkles className="h-3 w-3" />
                           Assistant Verified
                         </div>
@@ -466,18 +454,18 @@ export default function Home() {
                         </p>
                         <div className="mt-2 pt-2 border-t border-border/40 flex items-center justify-between text-[11px]">
                           <span className="text-muted-foreground">Invoice #INV-2026-10-402</span>
-                          <Link href="/maintenance" className="text-[#315CF5] font-medium hover:underline flex items-center gap-0.5">
+                          <Link href="/maintenance" className="text-primary font-medium hover:underline flex items-center gap-0.5">
                             Pay Now <ArrowUpRight className="h-3 w-3" />
                           </Link>
                         </div>
                       </div>
 
-                      <div className="ml-auto max-w-[85%] rounded-2xl rounded-tr-sm bg-[#315CF5] px-3.5 py-2.5 text-xs text-white shadow-sm">
+                      <div className="ml-auto max-w-[85%] rounded-2xl rounded-tr-sm bg-primary px-3.5 py-2.5 text-xs text-primary-foreground shadow-sm">
                         Are pets allowed in the central garden?
                       </div>
 
-                      <div className="mr-auto max-w-[90%] rounded-2xl rounded-tl-sm border border-black/[0.06] dark:border-white/[0.08] bg-white dark:bg-[#121319] p-3 text-xs shadow-sm">
-                        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#315CF5] mb-1">
+                      <div className="mr-auto max-w-[90%] rounded-2xl rounded-tl-sm border border-black/[0.06] dark:border-white/[0.08] bg-card p-3 text-xs shadow-sm">
+                        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-primary mb-1">
                           <Sparkles className="h-3 w-3" />
                           Bylaw clause 4.2
                         </div>
@@ -490,9 +478,9 @@ export default function Home() {
 
                   {/* Input Box Illusion */}
                   <div className="mt-4 pt-3 border-t border-border/50">
-                    <div className="flex items-center gap-2 rounded-xl border border-black/[0.08] dark:border-white/[0.1] bg-white dark:bg-[#101115] px-3 py-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 rounded-xl border border-black/[0.08] dark:border-white/[0.1] bg-card px-3 py-2 text-xs text-muted-foreground">
                       <span className="flex-1">Ask anything about dues, receipts, or rules...</span>
-                      <div className="h-6 w-6 rounded-lg bg-[#315CF5] text-white flex items-center justify-center">
+                      <div className="h-6 w-6 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
                         <Send className="h-3 w-3" />
                       </div>
                     </div>
@@ -509,26 +497,26 @@ export default function Home() {
       {/* ========================================================
           3. EDITORIAL PRODUCT INTRODUCTION (Two-Column Asymmetric)
          ======================================================== */}
-      <section id="platform" className="border-t border-b border-black/[0.08] dark:border-white/[0.08] py-24 sm:py-32 bg-white dark:bg-[#0c0d12]">
+      <section id="platform" className="border-t border-b border-black/[0.08] dark:border-white/[0.08] py-24 sm:py-32 bg-background">
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
             
             {/* Left Column: Oversized Statement Heading */}
             <div className="lg:col-span-6">
-              <span className="font-mono text-xs uppercase tracking-widest text-[#315CF5] font-semibold">
+              <span className="font-mono text-xs uppercase tracking-widest text-primary font-semibold">
                 Platform Architecture
               </span>
-              <h2 className="mt-4 text-3xl sm:text-5xl lg:text-6xl font-semibold tracking-tighter-editorial leading-[1.05] text-[#101114] dark:text-[#F8FAFC]">
+              <h2 className="mt-4 text-3xl sm:text-5xl lg:text-6xl font-semibold tracking-tighter-editorial leading-[1.05] text-foreground dark:text-foreground">
                 Everything your society needs. <br />
-                <span className="text-[#626773] dark:text-[#94A3B8]">
+                <span className="text-muted-foreground dark:text-muted-foreground">
                   One intelligent platform.
                 </span>
               </h2>
             </div>
 
             {/* Right Column: Editorial narrative description */}
-            <div className="lg:col-span-6 flex flex-col gap-6 text-base sm:text-lg text-[#626773] dark:text-[#94A3B8] leading-relaxed">
+            <div className="lg:col-span-6 flex flex-col gap-6 text-base sm:text-lg text-muted-foreground dark:text-muted-foreground leading-relaxed">
               <p>
                 Traditional resident portals are bloated, fragmented, and full of friction. Committee members spend hours answering repetitive queries about payment status, while residents struggle to locate basic bills.
               </p>
@@ -560,12 +548,12 @@ export default function Home() {
       {/* ========================================================
           4. FEATURE SHOWCASE (Numbered Editorial Chapters 01 - 04)
          ======================================================== */}
-      <section id="features" className="py-24 sm:py-32 bg-[#F7F8FA] dark:bg-[#090A0D]">
+      <section id="features" className="py-24 sm:py-32 bg-background dark:bg-background">
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           
           <div className="border-b border-black/[0.08] dark:border-white/[0.08] pb-8 mb-16 flex flex-wrap items-end justify-between gap-6">
             <div>
-              <span className="font-mono text-xs uppercase tracking-widest text-[#315CF5] font-semibold">
+              <span className="font-mono text-xs uppercase tracking-widest text-primary font-semibold">
                 Feature Index
               </span>
               <h2 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tighter-editorial text-foreground">
@@ -582,37 +570,37 @@ export default function Home() {
             {/* 01 — Maintenance Management */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
               <div className="lg:col-span-5 order-2 lg:order-1">
-                <div className="font-mono text-3xl sm:text-4xl font-light text-[#315CF5]">01</div>
+                <div className="font-mono text-3xl sm:text-4xl font-light text-primary">01</div>
                 <h3 className="mt-3 text-2xl sm:text-4xl font-semibold tracking-tight text-foreground">
                   Maintenance Management
                 </h3>
-                <p className="mt-4 text-base sm:text-lg text-[#626773] dark:text-[#94A3B8] leading-relaxed">
+                <p className="mt-4 text-base sm:text-lg text-muted-foreground dark:text-muted-foreground leading-relaxed">
                   Track pending and settled maintenance records with granular breakdown across flats, wings, and fee components. Avoid manual bookkeeping mistakes.
                 </p>
                 <ul className="mt-6 space-y-2.5 text-sm font-medium text-foreground">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-[#315CF5]" />
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
                     <span>Real-time dues calculation with late fee automation</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-[#315CF5]" />
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
                     <span>Flat-wise and tower-wise ledger views</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-[#315CF5]" />
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
                     <span>Instant payment status synchronization</span>
                   </li>
                 </ul>
               </div>
 
               <div className="lg:col-span-7 order-1 lg:order-2">
-                <div className="rounded-2xl border border-black/[0.08] dark:border-white/[0.1] bg-white dark:bg-[#121319] p-6 shadow-xl">
+                <div className="rounded-2xl border border-black/[0.08] dark:border-white/[0.1] bg-card p-6 shadow-xl">
                   <div className="flex items-center justify-between pb-4 border-b border-border/50">
                     <span className="text-xs font-mono uppercase text-muted-foreground">Live Ledger View</span>
                     <span className="text-xs font-mono px-2 py-0.5 rounded bg-black/5 dark:bg-white/5">Tower B / 4th Floor</span>
                   </div>
                   <div className="mt-4 space-y-3">
-                    <div className="p-3.5 rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-[#F7F8FA] dark:bg-[#181922] flex items-center justify-between">
+                    <div className="p-3.5 rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-background dark:bg-card flex items-center justify-between">
                       <div>
                         <p className="font-semibold text-sm">Flat B-402 — Bhavya Sharma</p>
                         <p className="text-xs text-muted-foreground font-mono">Monthly Maintenance (3BHK Standard)</p>
@@ -622,7 +610,7 @@ export default function Home() {
                         <p className="text-[10px] uppercase font-mono text-amber-600">Due in 5 days</p>
                       </div>
                     </div>
-                    <div className="p-3.5 rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-[#F7F8FA] dark:bg-[#181922] flex items-center justify-between">
+                    <div className="p-3.5 rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-background dark:bg-card flex items-center justify-between">
                       <div>
                         <p className="font-semibold text-sm">Flat B-403 — Rajesh Patel</p>
                         <p className="text-xs text-muted-foreground font-mono">Monthly Maintenance + Parking</p>
@@ -632,7 +620,7 @@ export default function Home() {
                         <p className="text-[10px] uppercase font-mono text-emerald-600">Settled (UPI)</p>
                       </div>
                     </div>
-                    <div className="p-3.5 rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-[#F7F8FA] dark:bg-[#181922] flex items-center justify-between">
+                    <div className="p-3.5 rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-background dark:bg-card flex items-center justify-between">
                       <div>
                         <p className="font-semibold text-sm">Flat B-404 — Meera Sengupta</p>
                         <p className="text-xs text-muted-foreground font-mono">Monthly Maintenance (2BHK)</p>
@@ -650,7 +638,7 @@ export default function Home() {
             {/* 02 — Payment Tracking */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
               <div className="lg:col-span-7">
-                <div className="rounded-2xl border border-black/[0.08] dark:border-white/[0.1] bg-white dark:bg-[#121319] p-6 shadow-xl">
+                <div className="rounded-2xl border border-black/[0.08] dark:border-white/[0.1] bg-card p-6 shadow-xl">
                   <div className="flex items-center justify-between pb-4 border-b border-border/50">
                     <span className="text-xs font-mono uppercase text-muted-foreground">Automated Reconciliation</span>
                     <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
@@ -658,12 +646,12 @@ export default function Home() {
                     </span>
                   </div>
                   <div className="mt-4 grid grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl bg-[#F7F8FA] dark:bg-[#181922] border border-border/40">
+                    <div className="p-4 rounded-xl bg-background dark:bg-card border border-border/40">
                       <span className="text-xs text-muted-foreground font-mono">COLLECTED THIS MONTH</span>
                       <p className="text-2xl font-bold mt-1 text-foreground">₹3,84,000</p>
                       <p className="text-xs text-emerald-600 mt-1">↑ 96% collected on-time</p>
                     </div>
-                    <div className="p-4 rounded-xl bg-[#F7F8FA] dark:bg-[#181922] border border-border/40">
+                    <div className="p-4 rounded-xl bg-background dark:bg-card border border-border/40">
                       <span className="text-xs text-muted-foreground font-mono">OUTSTANDING BALANCE</span>
                       <p className="text-2xl font-bold mt-1 text-amber-600 dark:text-amber-400">₹16,000</p>
                       <p className="text-xs text-muted-foreground mt-1">4 units pending reminder</p>
@@ -671,17 +659,17 @@ export default function Home() {
                   </div>
                   <div className="mt-4 p-3 rounded-lg border border-dashed border-border flex items-center justify-between text-xs font-mono">
                     <span>Audit trail: #TXN-99418290 via Razorpay/UPI</span>
-                    <span className="text-[#315CF5]">Reconciled</span>
+                    <span className="text-primary">Reconciled</span>
                   </div>
                 </div>
               </div>
 
               <div className="lg:col-span-5">
-                <div className="font-mono text-3xl sm:text-4xl font-light text-[#315CF5]">02</div>
+                <div className="font-mono text-3xl sm:text-4xl font-light text-primary">02</div>
                 <h3 className="mt-3 text-2xl sm:text-4xl font-semibold tracking-tight text-foreground">
                   Payment Tracking
                 </h3>
-                <p className="mt-4 text-base sm:text-lg text-[#626773] dark:text-[#94A3B8] leading-relaxed">
+                <p className="mt-4 text-base sm:text-lg text-muted-foreground dark:text-muted-foreground leading-relaxed">
                   Transparent multi-mode payment workflows. Residents see immediate verification while society accountants receive automated audit trails with bank reconciliation.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-2 text-xs font-mono">
@@ -696,35 +684,35 @@ export default function Home() {
             {/* 03 — Digital Invoices */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
               <div className="lg:col-span-5 order-2 lg:order-1">
-                <div className="font-mono text-3xl sm:text-4xl font-light text-[#315CF5]">03</div>
+                <div className="font-mono text-3xl sm:text-4xl font-light text-primary">03</div>
                 <h3 className="mt-3 text-2xl sm:text-4xl font-semibold tracking-tight text-foreground">
                   Digital Invoices
                 </h3>
-                <p className="mt-4 text-base sm:text-lg text-[#626773] dark:text-[#94A3B8] leading-relaxed">
+                <p className="mt-4 text-base sm:text-lg text-muted-foreground dark:text-muted-foreground leading-relaxed">
                   Never search through paper slips or old email chains. Access formatted, GST-ready digital invoices and historical receipts anytime from your resident portal.
                 </p>
                 <ul className="mt-6 space-y-2.5 text-sm font-medium text-foreground">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-[#315CF5]" />
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
                     <span>Instant PDF receipt generation with unique serial codes</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-[#315CF5]" />
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
                     <span>Permanent multi-year digital archives</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-[#315CF5]" />
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
                     <span>One-click download for tax and ownership documentation</span>
                   </li>
                 </ul>
               </div>
 
               <div className="lg:col-span-7 order-1 lg:order-2">
-                <div className="rounded-2xl border border-black/[0.08] dark:border-white/[0.1] bg-white dark:bg-[#121319] p-6 shadow-xl">
-                  <div className="rounded-xl border border-border/60 bg-[#F7F8FA] dark:bg-[#161720] p-5">
+                <div className="rounded-2xl border border-black/[0.08] dark:border-white/[0.1] bg-card p-6 shadow-xl">
+                  <div className="rounded-xl border border-border/60 bg-background dark:bg-card p-5">
                     <div className="flex justify-between items-start border-b border-border/50 pb-4">
                       <div>
-                        <span className="text-xs font-mono uppercase text-[#315CF5] font-bold">OFFICIAL TAX INVOICE</span>
+                        <span className="text-xs font-mono uppercase text-primary font-bold">OFFICIAL TAX INVOICE</span>
                         <h4 className="text-base font-bold text-foreground mt-1">Palm Grove Cooperative Society</h4>
                         <p className="text-xs text-muted-foreground font-mono">Reg No: BOM/HSG/TC/1049/2018</p>
                       </div>
@@ -755,10 +743,10 @@ export default function Home() {
             {/* 04 — AI-Powered Assistance */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
               <div className="lg:col-span-7">
-                <div className="rounded-2xl border border-black/[0.08] dark:border-white/[0.1] bg-[#101115] p-6 text-white shadow-xl">
+                <div className="rounded-2xl border border-black/[0.08] dark:border-white/[0.1] bg-[#10150f] p-6 text-white shadow-xl">
                   <div className="flex items-center justify-between pb-4 border-b border-white/10">
                     <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-[#315CF5]" />
+                      <span className="h-2 w-2 rounded-full bg-[#79c9a6]" />
                       <span className="text-xs font-mono uppercase tracking-wider text-neutral-400">RAG Knowledge Engine</span>
                     </div>
                     <span className="text-xs font-mono text-neutral-400">Embedding: Text-Embedding-004</span>
@@ -768,8 +756,8 @@ export default function Home() {
                       <p className="text-xs text-neutral-300 font-mono">Resident Query</p>
                       <p className="text-sm text-white mt-1">&ldquo;Can I book the community hall for my daughter&apos;s birthday next Sunday?&rdquo;</p>
                     </div>
-                    <div className="p-3.5 rounded-xl bg-[#315CF5]/15 border border-[#315CF5]/30">
-                      <p className="text-xs text-[#819eff] font-mono flex items-center gap-1.5">
+                    <div className="p-3.5 rounded-xl bg-[#79c9a6]/10 border border-[#79c9a6]/30">
+                      <p className="text-xs text-[#79c9a6] font-mono flex items-center gap-1.5">
                         <Sparkles className="h-3 w-3" /> SocietyAI Grounded Answer
                       </p>
                       <p className="text-sm text-neutral-200 mt-1 leading-relaxed">
@@ -781,17 +769,17 @@ export default function Home() {
               </div>
 
               <div className="lg:col-span-5">
-                <div className="font-mono text-3xl sm:text-4xl font-light text-[#315CF5]">04</div>
+                <div className="font-mono text-3xl sm:text-4xl font-light text-primary">04</div>
                 <h3 className="mt-3 text-2xl sm:text-4xl font-semibold tracking-tight text-foreground">
                   AI-Powered Assistance
                 </h3>
-                <p className="mt-4 text-base sm:text-lg text-[#626773] dark:text-[#94A3B8] leading-relaxed">
+                <p className="mt-4 text-base sm:text-lg text-muted-foreground dark:text-muted-foreground leading-relaxed">
                   Trained on your society&apos;s exact bylaws, minutes of meetings, and individual resident ledgers. Residents get verified answers without texting managing committee members.
                 </p>
                 <div className="mt-6">
                   <Link
                     href="/ai"
-                    className="bubble-cta bubble-cta-blue text-sm"
+                    className="bubble-cta bubble-cta-primary text-sm"
                   >
                     <span>Launch AI Concierge</span>
                     <span className="bubble-cta-arrow">
@@ -810,21 +798,21 @@ export default function Home() {
       {/* ========================================================
           5. AI ASSISTANT SHOWCASE (Contrasting Dark Editorial Section)
          ======================================================== */}
-      <section id="ai" className="relative py-24 sm:py-32 bg-[#101114] text-[#F8FAFC] overflow-hidden">
+      <section id="ai" className="relative py-24 sm:py-32 bg-[#10150f] text-[#f5f5f1] overflow-hidden">
         
         {/* Glow ambient accent */}
-        <div className="absolute top-0 right-1/4 h-96 w-96 rounded-full bg-[#315CF5]/10 blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-1/4 h-96 w-96 rounded-full bg-[#79c9a6]/10 blur-3xl pointer-events-none" />
 
         <div className="mx-auto max-w-7xl px-6 sm:px-8 relative z-10">
           
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-mono text-[#819eff]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-mono text-[#79c9a6]">
               <Sparkles className="h-3 w-3" />
               <span>Grounded Intelligence</span>
             </div>
             <h2 className="mt-4 text-3xl sm:text-5xl lg:text-6xl font-semibold tracking-tighter-editorial leading-[1.05]">
               Answers, without <br />
-              <span className="text-[#315CF5]">the waiting.</span>
+              <span className="text-[#79c9a6]">the waiting.</span>
             </h2>
             <p className="mt-6 text-base sm:text-xl text-neutral-400 max-w-xl leading-relaxed">
               Ask about maintenance, payments, invoices, and bylaws. SocietyAI helps residents find the information they need in seconds.
@@ -845,11 +833,11 @@ export default function Home() {
                   onClick={() => setActiveAiDemo(idx)}
                   className={`text-left p-4 rounded-xl border transition-all ${
                     activeAiDemo === idx
-                      ? "border-[#315CF5] bg-[#315CF5]/10 text-white"
+                      ? "border-[#79c9a6] bg-[#79c9a6]/10 text-white"
                       : "border-white/10 bg-white/[0.02] text-neutral-400 hover:bg-white/[0.05] hover:text-white"
                   }`}
                 >
-                  <span className="text-[11px] font-mono uppercase text-[#315CF5] font-semibold block">
+                  <span className="text-[11px] font-mono uppercase text-[#79c9a6] font-semibold block">
                     {item.tag}
                   </span>
                   <p className="mt-1 text-sm font-medium line-clamp-2">
@@ -865,11 +853,11 @@ export default function Home() {
             </div>
 
             {/* Right 8 Cols: Large Editorial Chat Window */}
-            <div className="lg:col-span-8 rounded-2xl border border-white/10 bg-[#16171E] p-6 sm:p-8 shadow-2xl">
+            <div className="lg:col-span-8 rounded-2xl border border-white/10 bg-[#151a16] p-6 sm:p-8 shadow-2xl">
               
               <div className="flex items-center justify-between pb-6 border-b border-white/10">
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-xl bg-[#315CF5] text-white flex items-center justify-center font-bold">
+                  <div className="h-9 w-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-bold">
                     AI
                   </div>
                   <div>
@@ -889,15 +877,15 @@ export default function Home() {
                 
                 {/* User Message */}
                 <div className="flex justify-end">
-                  <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-[#315CF5] px-5 py-3.5 text-sm sm:text-base text-white shadow-md">
+                  <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-primary px-5 py-3.5 text-sm sm:text-base text-primary-foreground shadow-md">
                     {aiConversations[activeAiDemo].q}
                   </div>
                 </div>
 
                 {/* AI Grounded Response */}
                 <div className="flex justify-start">
-                  <div className="max-w-[92%] rounded-2xl rounded-tl-sm border border-white/10 bg-[#1F202B] p-5 sm:p-6 shadow-md">
-                    <div className="flex items-center gap-2 text-xs font-mono text-[#819eff] mb-3">
+                  <div className="max-w-[92%] rounded-2xl rounded-tl-sm border border-white/10 bg-[#1a201b] p-5 sm:p-6 shadow-md">
+                    <div className="flex items-center gap-2 text-xs font-mono text-[#79c9a6] mb-3">
                       <Sparkles className="h-3.5 w-3.5" />
                       <span>SOCIETYAI AUDITED ANSWER</span>
                       <span>•</span>
@@ -912,7 +900,7 @@ export default function Home() {
                       <span className="font-mono">Intent: {aiConversations[activeAiDemo].intent}</span>
                       <Link
                         href="/ai"
-                        className="text-[#315CF5] hover:text-[#819eff] font-medium flex items-center gap-1 transition"
+                        className="text-[#79c9a6] hover:text-[#79c9a6]/80 font-medium flex items-center gap-1 transition"
                       >
                         Try with your society data <ArrowUpRight className="h-3 w-3" />
                       </Link>
@@ -929,7 +917,7 @@ export default function Home() {
                 </span>
                 <Link
                   href="/login"
-                  className="bubble-cta bubble-cta-blue text-xs py-2 px-4"
+                  className="bubble-cta bubble-cta-primary text-xs py-2 px-4"
                 >
                   <span>Log in to test live assistant</span>
                   <span className="bubble-cta-arrow">
@@ -948,11 +936,11 @@ export default function Home() {
       {/* ========================================================
           6. ASYMMETRIC CAPABILITIES MATRIX
          ======================================================== */}
-      <section className="py-24 sm:py-32 bg-[#F7F8FA] dark:bg-[#090A0D]">
+      <section className="py-24 sm:py-32 bg-background dark:bg-background">
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           
           <div className="max-w-2xl">
-            <span className="font-mono text-xs uppercase tracking-widest text-[#315CF5] font-semibold">
+            <span className="font-mono text-xs uppercase tracking-widest text-primary font-semibold">
               Deep Architecture
             </span>
             <h2 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tighter-editorial text-foreground">
@@ -963,43 +951,43 @@ export default function Home() {
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
             
             {/* Box 1 */}
-            <div className="rounded-2xl border border-black/[0.08] dark:border-white/[0.08] bg-white dark:bg-[#121319] p-8 flex flex-col justify-between">
+            <div className="rounded-2xl border border-black/[0.08] dark:border-white/[0.08] bg-card p-8 flex flex-col justify-between">
               <div>
                 <span className="font-mono text-xs text-muted-foreground uppercase">01 / RECONCILIATION</span>
                 <h3 className="mt-3 text-xl font-semibold text-foreground">Payment Visibility</h3>
-                <p className="mt-3 text-sm text-[#626773] dark:text-[#94A3B8] leading-relaxed">
+                <p className="mt-3 text-sm text-muted-foreground dark:text-muted-foreground leading-relaxed">
                   Real-time synchronization between bank gateways and apartment units. Zero ledger ambiguity, zero double-charges.
                 </p>
               </div>
-              <div className="mt-8 pt-4 border-t border-border/40 font-mono text-xs text-[#315CF5]">
+              <div className="mt-8 pt-4 border-t border-border/40 font-mono text-xs text-primary">
                 ✓ Bank-grade ledger records
               </div>
             </div>
 
             {/* Box 2 - Highlighted */}
-            <div className="rounded-2xl border border-[#315CF5]/30 bg-white dark:bg-[#141620] p-8 flex flex-col justify-between shadow-lg shadow-[#315CF5]/5">
+            <div className="rounded-2xl border border-primary/30 bg-white dark:bg-card p-8 flex flex-col justify-between shadow-lg shadow-primary/5">
               <div>
-                <span className="font-mono text-xs text-[#315CF5] uppercase font-semibold">02 / COMPLIANCE</span>
+                <span className="font-mono text-xs text-primary uppercase font-semibold">02 / COMPLIANCE</span>
                 <h3 className="mt-3 text-xl font-semibold text-foreground">GST &amp; Invoice Access</h3>
-                <p className="mt-3 text-sm text-[#626773] dark:text-[#94A3B8] leading-relaxed">
+                <p className="mt-3 text-sm text-muted-foreground dark:text-muted-foreground leading-relaxed">
                   Every maintenance cycle generates verified digital tax receipts. Easily downloadable for property tax filing.
                 </p>
               </div>
-              <div className="mt-8 pt-4 border-t border-border/40 font-mono text-xs text-[#315CF5]">
+              <div className="mt-8 pt-4 border-t border-border/40 font-mono text-xs text-primary">
                 ✓ Standardized PDF invoicing
               </div>
             </div>
 
             {/* Box 3 */}
-            <div className="rounded-2xl border border-black/[0.08] dark:border-white/[0.08] bg-white dark:bg-[#121319] p-8 flex flex-col justify-between">
+            <div className="rounded-2xl border border-black/[0.08] dark:border-white/[0.08] bg-card p-8 flex flex-col justify-between">
               <div>
                 <span className="font-mono text-xs text-muted-foreground uppercase">03 / HISTORICAL LOGS</span>
                 <h3 className="mt-3 text-xl font-semibold text-foreground">Audited Records</h3>
-                <p className="mt-3 text-sm text-[#626773] dark:text-[#94A3B8] leading-relaxed">
+                <p className="mt-3 text-sm text-muted-foreground dark:text-muted-foreground leading-relaxed">
                   Complete historical maintenance archives. Resident transfers and tenancy handovers maintain clean financial continuity.
                 </p>
               </div>
-              <div className="mt-8 pt-4 border-t border-border/40 font-mono text-xs text-[#315CF5]">
+              <div className="mt-8 pt-4 border-t border-border/40 font-mono text-xs text-primary">
                 ✓ Tamper-evident ledger log
               </div>
             </div>
@@ -1012,12 +1000,12 @@ export default function Home() {
       {/* ========================================================
           7. HOW IT WORKS (3-Step Editorial Workflow)
          ======================================================== */}
-      <section id="workflow" className="border-t border-black/[0.08] dark:border-white/[0.08] py-24 sm:py-32 bg-white dark:bg-[#0c0d12]">
+      <section id="workflow" className="border-t border-black/[0.08] dark:border-white/[0.08] py-24 sm:py-32 bg-background">
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           
           <div className="border-b border-black/[0.08] dark:border-white/[0.08] pb-8 mb-16 flex flex-wrap items-end justify-between gap-6">
             <div>
-              <span className="font-mono text-xs uppercase tracking-widest text-[#315CF5] font-semibold">
+              <span className="font-mono text-xs uppercase tracking-widest text-primary font-semibold">
                 Process
               </span>
               <h2 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tighter-editorial text-foreground">
@@ -1032,13 +1020,13 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             
             <div className="flex flex-col">
-              <div className="font-mono text-4xl sm:text-5xl font-light text-[#315CF5]">
+              <div className="font-mono text-4xl sm:text-5xl font-light text-primary">
                 01
               </div>
               <h3 className="mt-5 text-xl font-semibold text-foreground">
                 Create your account
               </h3>
-              <p className="mt-3 text-sm sm:text-base text-[#626773] dark:text-[#94A3B8] leading-relaxed">
+              <p className="mt-3 text-sm sm:text-base text-muted-foreground dark:text-muted-foreground leading-relaxed">
                 Residents and committee admins securely sign in using credentialed profiles mapped directly to flat and wing numbers.
               </p>
               <div className="mt-6 text-xs font-mono text-muted-foreground">
@@ -1047,13 +1035,13 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col">
-              <div className="font-mono text-4xl sm:text-5xl font-light text-[#315CF5]">
+              <div className="font-mono text-4xl sm:text-5xl font-light text-primary">
                 02
               </div>
               <h3 className="mt-5 text-xl font-semibold text-foreground">
                 Access society information
               </h3>
-              <p className="mt-3 text-sm sm:text-base text-[#626773] dark:text-[#94A3B8] leading-relaxed">
+              <p className="mt-3 text-sm sm:text-base text-muted-foreground dark:text-muted-foreground leading-relaxed">
                 View monthly maintenance breakdowns, upcoming payment deadlines, downloadable tax receipts, and general announcements.
               </p>
               <div className="mt-6 text-xs font-mono text-muted-foreground">
@@ -1062,13 +1050,13 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col">
-              <div className="font-mono text-4xl sm:text-5xl font-light text-[#315CF5]">
+              <div className="font-mono text-4xl sm:text-5xl font-light text-primary">
                 03
               </div>
               <h3 className="mt-5 text-xl font-semibold text-foreground">
                 Manage and ask AI
               </h3>
-              <p className="mt-3 text-sm sm:text-base text-[#626773] dark:text-[#94A3B8] leading-relaxed">
+              <p className="mt-3 text-sm sm:text-base text-muted-foreground dark:text-muted-foreground leading-relaxed">
                 Query the intelligent assistant in plain English for pending balances, policy questions, or parking rules at any hour.
               </p>
               <div className="mt-6 text-xs font-mono text-muted-foreground">
@@ -1084,7 +1072,7 @@ export default function Home() {
       {/* ========================================================
           8. PREMIUM FINAL CTA (Bold, Memorable, Clean Editorial)
          ======================================================== */}
-      <section className="relative py-28 sm:py-36 bg-[#101114] text-[#F8FAFC] overflow-hidden">
+      <section className="relative py-28 sm:py-36 bg-[#10150f] text-[#f5f5f1] overflow-hidden">
         
         {/* Subtle dither pattern overlay on dark */}
         <div className="absolute inset-0 bg-dither-pattern opacity-10 pointer-events-none" />
@@ -1097,7 +1085,7 @@ export default function Home() {
 
           <h2 className="mt-8 text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-semibold tracking-tighter-editorial leading-[0.98]">
             Your society. <br />
-            <span className="text-[#315CF5]">Simplified.</span>
+            <span className="text-[#79c9a6]">Simplified.</span>
           </h2>
 
           <p className="mx-auto mt-6 max-w-2xl text-base sm:text-xl text-neutral-400 leading-relaxed">
@@ -1107,7 +1095,7 @@ export default function Home() {
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <Link
               href="/signup"
-              className="bubble-cta bubble-cta-blue text-base py-3 px-8"
+              className="bubble-cta bubble-cta-primary text-base py-3 px-8"
             >
               <span>Get Started Now</span>
               <span className="bubble-cta-arrow">
@@ -1140,7 +1128,7 @@ export default function Home() {
       {/* ========================================================
           9. FOOTER (Minimal, refined, Legency Media hierarchy)
          ======================================================== */}
-      <footer className="border-t border-black/[0.08] dark:border-white/[0.08] bg-[#F7F8FA] dark:bg-[#090A0D] py-16">
+      <footer className="border-t border-black/[0.08] dark:border-white/[0.08] bg-background dark:bg-background py-16">
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-black/[0.08] dark:border-white/[0.08]">
@@ -1148,18 +1136,20 @@ export default function Home() {
             {/* Brand column */}
             <div className="md:col-span-5">
               <Link href="/" className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white dark:bg-[#14151B] border border-black/[0.08] dark:border-white/[0.1]">
-                  <img
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white dark:bg-card border border-black/[0.08] dark:border-white/[0.1]">
+                  <Image
                     src={resolved === "dark" ? "/logo.png" : "/logo-light.png"}
                     alt="SocietyAI"
+                    width={20}
+                    height={20}
                     className="h-5 w-5 object-contain"
                   />
                 </div>
                 <span className="font-semibold text-lg tracking-tight-editorial font-sans">
-                  Society<span className="text-[#315CF5]">AI</span>
+                  Society<span className="text-primary">AI</span>
                 </span>
               </Link>
-              <p className="mt-4 text-sm text-[#626773] dark:text-[#94A3B8] max-w-sm leading-relaxed">
+              <p className="mt-4 text-sm text-muted-foreground dark:text-muted-foreground max-w-sm leading-relaxed">
                 An intelligent residential management platform unifying maintenance tracking, automated invoice generation, and natural language assistance.
               </p>
               <div className="mt-6 flex items-center gap-2 font-mono text-xs text-muted-foreground">
@@ -1229,7 +1219,7 @@ export default function Home() {
           </div>
 
           {/* Bottom copyright & attribution */}
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-[#626773] dark:text-[#94A3B8]">
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-muted-foreground dark:text-muted-foreground">
             <p>© {new Date().getFullYear()} SocietyAI. All rights reserved.</p>
             <div className="flex items-center gap-6">
               <span>DESIGNED WITH EDITORIAL EXCELLENCE</span>

@@ -2,11 +2,12 @@
 
 import {
   createContext,
-  useContext,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 
@@ -23,6 +24,10 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 const STORAGE_KEY = "society-ai-theme";
 
+const subscribeToMount = () => () => {};
+const getClientMounted = () => true;
+const getServerMounted = () => false;
+
 function getSystemTheme(): "light" | "dark" {
   if (typeof window === "undefined") {
     return "light";
@@ -33,72 +38,67 @@ function getSystemTheme(): "light" | "dark" {
     : "light";
 }
 
-function applyTheme(theme: Theme, resolved: "light" | "dark") {
-  const root = document.documentElement;
-
-  if (resolved === "dark") {
-    root.classList.add("dark");
-  } else {
-    root.classList.remove("dark");
+function getInitialTheme(): Theme {
+  if (typeof window === "undefined") {
+    return "system";
   }
 
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+
+    return stored === "light" || stored === "dark" || stored === "system"
+      ? stored
+      : "system";
+  } catch {
+    return "system";
+  }
+}
+
+function resolveTheme(theme: Theme): "light" | "dark" {
+  return theme === "system" ? getSystemTheme() : theme;
+}
+
+function applyTheme(resolved: "light" | "dark") {
+  const root = document.documentElement;
+
+  root.classList.toggle("dark", resolved === "dark");
   root.style.colorScheme = resolved;
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("system");
-  const [resolved, setResolved] = useState<"light" | "dark">("light");
-  const [mounted, setMounted] = useState(false);
+  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
+  const [resolved, setResolved] = useState<"light" | "dark">(() =>
+    resolveTheme(getInitialTheme())
+  );
+  const mounted = useSyncExternalStore(
+    subscribeToMount,
+    getClientMounted,
+    getServerMounted
+  );
 
   useEffect(() => {
-    let cancelled = false;
+    applyTheme(resolved);
+  }, [resolved]);
 
-    const stored = window.localStorage.getItem(STORAGE_KEY) as Theme | null;
-
-    const initialTheme: Theme =
-      stored === "light" || stored === "dark" || stored === "system"
-        ? stored
-        : "system";
-
-    const initialResolved =
-      initialTheme === "system" ? getSystemTheme() : initialTheme;
-
-    setThemeState(initialTheme);
-    setResolved(initialResolved);
-    applyTheme(initialTheme, initialResolved);
-    setMounted(true);
+  useEffect(() => {
+    if (theme !== "system") {
+      return;
+    }
 
     const media = window.matchMedia("(prefers-color-scheme: dark)");
 
     const listener = (event: MediaQueryListEvent) => {
-      if (cancelled) {
-        return;
-      }
-
-      if (theme === "system") {
-        const next = event.matches ? "dark" : "light";
-        setResolved(next);
-        applyTheme("system", next);
-      }
+      setResolved(event.matches ? "dark" : "light");
     };
 
     media.addEventListener("change", listener);
 
-    return () => {
-      cancelled = true;
-      media.removeEventListener("change", listener);
-    };
-    // intentionally only run once
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    return () => media.removeEventListener("change", listener);
+  }, [theme]);
 
   const setTheme = useCallback((next: Theme) => {
     setThemeState(next);
-
-    const nextResolved = next === "system" ? getSystemTheme() : next;
-
-    setResolved(nextResolved);
-    applyTheme(next, nextResolved);
+    setResolved(resolveTheme(next));
 
     try {
       window.localStorage.setItem(STORAGE_KEY, next);
@@ -112,7 +112,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     [theme, resolved, setTheme]
   );
 
-  // Prevent hydration mismatches by rendering nothing until mounted.
+  // Avoid a hydration mismatch while the client theme is resolved.
   if (!mounted) {
     return null;
   }

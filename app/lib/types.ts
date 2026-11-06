@@ -78,6 +78,8 @@ export type ChatToolCall = {
 
 export type ChatResponse = {
   message: string;
+  /** OpenUI Lang program rendered as dynamic UI by the client. */
+  ui?: string | null;
   toolCalls: ChatToolCall[];
   source: "rag" | "tool" | "both" | "none";
   confirmation: ChatConfirmation | null;

@@ -3,20 +3,31 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowLeft, FileText, AlertCircle, Building2 } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowLeft,
+  Building2,
+  FileText,
+  Printer,
+} from "lucide-react";
 
 import AppShell from "../../../components/layout/AppShell";
+import PageHeader from "@/app/components/ui/PageHeader";
+import StatusBadge from "@/app/components/ui/StatusBadge";
 import { apiFetch } from "@/app/lib/api";
 import {
   formatCurrency,
   formatDate,
   type InvoiceResponse,
+  type Profile,
+  type ProfileResponse,
 } from "@/app/lib/types";
 
 export default function InvoicePage() {
   const params = useParams<{ id: string }>();
 
   const [data, setData] = useState<InvoiceResponse | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -25,12 +36,14 @@ export default function InvoicePage() {
 
     async function load() {
       try {
-        const result = await apiFetch<InvoiceResponse>(
-          `/maintenance/invoice/${params.id}`
-        );
+        const [invoiceResult, profileResult] = await Promise.all([
+          apiFetch<InvoiceResponse>(`/maintenance/invoice/${params.id}`),
+          apiFetch<ProfileResponse>("/users/profile"),
+        ]);
 
         if (!cancelled) {
-          setData(result);
+          setData(invoiceResult);
+          setProfile(profileResult.profile);
         }
       } catch (caught) {
         if (!cancelled) {
@@ -60,141 +73,214 @@ export default function InvoicePage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-3xl space-y-6">
-        <div>
-          <Link
-            href="/maintenance"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground transition hover:text-foreground mb-3"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            <span>Back to Maintenance</span>
-          </Link>
+      <div className="mx-auto max-w-4xl space-y-6">
+        <Link
+          href="/maintenance"
+          className="no-print inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back to maintenance
+        </Link>
 
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-            <FileText className="h-4 w-4" />
-            <span>Official Invoice Document</span>
-          </div>
-
-          <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-foreground">
-            Maintenance Invoice
-          </h1>
-        </div>
+        <PageHeader
+          eyebrow="Billing document"
+          title="Maintenance invoice"
+          description="A record of the maintenance charge issued against your flat."
+          action={
+            data && (
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="no-print inline-flex h-10 items-center gap-2 rounded-[10px] border border-border bg-card px-4 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                <Printer className="h-3.5 w-3.5 text-muted-foreground" />
+                Print invoice
+              </button>
+            )
+          }
+        />
 
         {error && (
-          <div className="flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            <AlertCircle className="h-5 w-5 shrink-0" />
+          <div className="flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/[0.06] px-4 py-3 text-sm text-destructive">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {loading && (
-          <div className="py-16 text-center text-sm text-muted-foreground">
-            Loading invoice details...
+          <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-card sm:p-8">
+            <div className="h-10 w-52 animate-pulse rounded bg-muted" />
+            <div className="mt-8 grid gap-6 sm:grid-cols-2">
+              <div className="h-24 animate-pulse rounded-xl bg-muted/70" />
+              <div className="h-24 animate-pulse rounded-xl bg-muted/70" />
+            </div>
+            <div className="mt-8 h-32 animate-pulse rounded-xl bg-muted/70" />
           </div>
         )}
 
         {data && (
-          <div className="rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-sm">
-            <div className="flex items-start justify-between border-b border-border pb-6">
+          <article className="print-plain overflow-hidden rounded-2xl border border-border/80 bg-card shadow-card">
+            <div className="flex flex-wrap items-start justify-between gap-5 border-b border-border/70 px-5 py-6 sm:px-8">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                <span className="flex h-11 w-11 items-center justify-center rounded-[11px] bg-primary text-primary-foreground">
                   <Building2 className="h-5 w-5" />
-                </div>
+                </span>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-primary">
-                    SocietyAI Billing
+                  <p className="text-sm font-semibold tracking-tight text-foreground">
+                    Palm Grove Residency
                   </p>
-                  <p className="text-base font-bold text-foreground">
-                    Maintenance Invoice
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                    Palm Grove Co-op Housing Society Ltd.
                   </p>
                 </div>
               </div>
 
-              <span
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold capitalize ${
-                  isPaid
-                    ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
-                    : "bg-amber-500/10 text-amber-500 border border-amber-500/20"
-                }`}
-              >
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${
-                    isPaid ? "bg-emerald-500" : "bg-amber-500"
-                  }`}
+              <div className="text-left sm:text-right">
+                <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                  Maintenance invoice
+                </p>
+                <p className="mt-1 font-mono text-sm font-medium text-foreground">
+                  {data.invoice?.invoiceNumber ?? "Generated on payment"}
+                </p>
+                <div className="mt-2">
+                  <StatusBadge variant={isPaid ? "success" : "warning"} size="sm">
+                    {data.maintenance.status}
+                  </StatusBadge>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-6 border-b border-border/70 px-5 py-6 sm:grid-cols-2 sm:px-8">
+              <div>
+                <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                  Billed to
+                </p>
+                <p className="mt-2 text-sm font-medium text-foreground">
+                  {profile?.name ?? "Resident"}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {profile?.email ?? ""}
+                </p>
+                {profile?.address && (
+                  <p className="mt-2 max-w-xs whitespace-pre-line text-xs leading-relaxed text-muted-foreground">
+                    {profile.address}
+                  </p>
+                )}
+              </div>
+
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:justify-items-end sm:text-right">
+                <InvoiceMeta
+                  label="Issued"
+                  value={formatDate(
+                    data.invoice?.issueDate ?? data.maintenance.createdAt
+                  )}
                 />
-                {data.maintenance.status}
-              </span>
+                <InvoiceMeta
+                  label="Due"
+                  value={formatDate(data.maintenance.dueDate)}
+                />
+                <InvoiceMeta
+                  label="Paid"
+                  value={
+                    data.maintenance.paidAt
+                      ? formatDate(data.maintenance.paidAt)
+                      : "Not paid"
+                  }
+                />
+                <InvoiceMeta
+                  label="Method"
+                  value={
+                    data.maintenance.paymentMethod?.replace("_", " ") ?? "—"
+                  }
+                  capitalize
+                />
+              </dl>
             </div>
 
-            <dl className="mt-6 grid gap-5 sm:grid-cols-2">
-              <Row
-                label="Invoice Number"
-                value={data.invoice?.invoiceNumber ?? "Generated upon payment"}
-              />
-              <Row
-                label="Maintenance Reference"
-                value={data.maintenance._id}
-                mono
-              />
-              <Row
-                label="Billed Amount"
-                value={formatCurrency(
-                  data.invoice?.amount ?? data.maintenance.pendingAmount
-                )}
-              />
-              <Row
-                label="Issue Date"
-                value={formatDate(
-                  data.invoice?.issueDate ?? data.maintenance.createdAt
-                )}
-              />
-              <Row label="Due Date" value={formatDate(data.maintenance.dueDate)} />
-              <Row
-                label="Paid Date"
-                value={formatDate(data.maintenance.paidAt)}
-              />
-              <Row
-                label="Payment Method"
-                value={
-                  data.maintenance.paymentMethod?.replace("_", " ") ?? "-"
-                }
-              />
-              <Row
-                label="Monthly Rate"
-                value={formatCurrency(data.maintenance.monthlyAmount)}
-              />
-            </dl>
+            <div className="px-5 py-6 sm:px-8">
+              <div className="overflow-hidden rounded-xl border border-border/70">
+                <div className="grid grid-cols-[1fr_auto] gap-4 border-b border-border/70 bg-muted/35 px-4 py-2.5 text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                  <span>Description</span>
+                  <span>Amount</span>
+                </div>
 
-            <div className="mt-8 rounded-xl border border-border/60 bg-muted/30 p-4 text-xs text-muted-foreground">
-              <span className="font-semibold text-foreground">Policy Notice: </span>
-              Society maintenance charges must be remitted before the 10th of every month. A late payment fee
-              of ₹200 automatically accrues past the due window.
+                <div className="grid grid-cols-[1fr_auto] items-start gap-4 px-4 py-4">
+                  <div>
+                    <p className="text-[13px] font-medium text-foreground">
+                      Residential maintenance charges
+                    </p>
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      Billing cycle due {formatDate(data.maintenance.dueDate)} ·
+                      Flat tariff {formatCurrency(data.maintenance.monthlyAmount)}
+                    </p>
+                  </div>
+                  <p className="text-[13px] font-medium text-foreground tabular-nums">
+                    {formatCurrency(
+                      data.invoice?.amount ?? data.maintenance.pendingAmount
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              <div className="ml-auto mt-6 max-w-xs space-y-2.5">
+                <div className="flex items-center justify-between gap-6 text-xs text-muted-foreground">
+                  <span>Subtotal</span>
+                  <span className="text-foreground tabular-nums">
+                    {formatCurrency(
+                      data.invoice?.amount ?? data.maintenance.pendingAmount
+                    )}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-6 text-xs text-muted-foreground">
+                  <span>Late fee</span>
+                  <span className="text-foreground tabular-nums">₹0</span>
+                </div>
+                <div className="flex items-center justify-between gap-6 border-t border-border/70 pt-2.5">
+                  <span className="text-xs font-medium text-foreground">
+                    Total {isPaid ? "paid" : "due"}
+                  </span>
+                  <span className="text-lg font-semibold tracking-tight text-foreground tabular-nums">
+                    {formatCurrency(
+                      data.invoice?.amount ?? data.maintenance.pendingAmount
+                    )}
+                  </span>
+                </div>
+              </div>
             </div>
-          </div>
+
+            <div className="border-t border-border/70 bg-muted/25 px-5 py-5 sm:px-8">
+              <div className="flex items-start gap-2.5">
+                <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                  Maintenance charges must be paid before the 10th of the billing
+                  month. A late fee of ₹200 applies after the due date. This
+                  invoice is generated by SocietyAI for Palm Grove Co-operative
+                  Housing Society.
+                </p>
+              </div>
+            </div>
+          </article>
         )}
       </div>
     </AppShell>
   );
 }
 
-function Row({
+function InvoiceMeta({
   label,
   value,
-  mono,
+  capitalize,
 }: {
   label: string;
   value: string;
-  mono?: boolean;
+  capitalize?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-border/50 bg-muted/20 p-3.5">
-      <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {label}
-      </dt>
-
+    <div>
+      <dt className="text-[10px] font-medium text-muted-foreground">{label}</dt>
       <dd
-        className={`mt-1 text-sm text-foreground ${
-          mono ? "font-mono text-xs text-muted-foreground break-all" : "font-bold"
+        className={`mt-0.5 text-xs font-medium text-foreground ${
+          capitalize ? "capitalize" : ""
         }`}
       >
         {value}
@@ -202,4 +288,3 @@ function Row({
     </div>
   );
 }
-

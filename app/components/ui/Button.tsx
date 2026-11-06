@@ -6,21 +6,21 @@ type Size = "sm" | "default" | "lg" | "icon";
 
 const VARIANTS: Record<Variant, string> = {
   default:
-    "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md active:scale-[0.98]",
+    "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-[0.98]",
   secondary:
-    "bg-secondary text-secondary-foreground hover:bg-secondary/80 active:scale-[0.98]",
+    "bg-secondary text-secondary-foreground hover:bg-secondary/75 active:scale-[0.98]",
   outline:
-    "border border-border bg-card hover:bg-accent/50 hover:text-accent-foreground active:scale-[0.98]",
-  ghost: "hover:bg-accent/60 hover:text-accent-foreground active:scale-[0.98]",
+    "border border-border bg-card text-foreground hover:bg-muted/70 active:scale-[0.98]",
+  ghost: "text-muted-foreground hover:bg-muted hover:text-foreground",
   destructive:
     "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 active:scale-[0.98]",
 };
 
 const SIZES: Record<Size, string> = {
-  sm: "h-8 rounded-md px-3 text-xs",
-  default: "h-10 rounded-lg px-4 text-sm",
-  lg: "h-11 rounded-lg px-6 text-sm",
-  icon: "h-10 w-10 rounded-lg",
+  sm: "h-8 rounded-lg px-3 text-xs",
+  default: "h-10 rounded-[10px] px-4 text-sm",
+  lg: "h-11 rounded-[10px] px-5 text-sm",
+  icon: "h-10 w-10 rounded-[10px]",
 };
 
 export interface ButtonProps

@@ -1,19 +1,40 @@
 import Link from "next/link";
-import { formatCurrency, formatDate, type MaintenanceRecord } from "@/app/lib/types";
-import { ArrowUpRight, CheckCircle2, Clock, AlertTriangle, FileText } from "lucide-react";
+import { ArrowUpRight, FileText } from "lucide-react";
+
+import StatusBadge from "@/app/components/ui/StatusBadge";
+import {
+  formatCurrency,
+  formatDate,
+  type MaintenanceRecord,
+} from "@/app/lib/types";
 
 type HistoryTableProps = {
   history: MaintenanceRecord[];
 };
 
+function statusVariant(status: MaintenanceRecord["status"]) {
+  if (status === "paid") {
+    return "success" as const;
+  }
+
+  if (status === "overdue") {
+    return "danger" as const;
+  }
+
+  return "warning" as const;
+}
+
 export default function HistoryTable({ history }: HistoryTableProps) {
   if (!history.length) {
     return (
-      <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center">
-        <FileText className="mx-auto h-8 w-8 text-muted-foreground" />
-        <p className="mt-3 text-sm font-semibold text-foreground">No transaction records found</p>
+      <div className="rounded-2xl border border-dashed border-border bg-card/60 p-12 text-center">
+        <FileText className="mx-auto h-8 w-8 text-muted-foreground/60" />
+        <p className="mt-3 text-sm font-medium text-foreground">
+          No transaction records found
+        </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Your maintenance records and payment receipts will appear here once invoices are raised.
+          Your maintenance records and payment receipts will appear here once an
+          invoice is raised.
         </p>
       </div>
     );
@@ -21,72 +42,70 @@ export default function HistoryTable({ history }: HistoryTableProps) {
 
   return (
     <div className="space-y-4">
-      {/* Desktop / Tablet Table View (hidden on mobile) */}
-      <div className="hidden md:block overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm">
-        <div className="border-b border-border/60 p-5">
-          <h2 className="text-base font-bold text-foreground">Maintenance Ledger</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Full chronological archive of dues, payments, and generated invoices.
-          </p>
+      <div className="hidden overflow-hidden rounded-2xl border border-border/80 bg-card shadow-card md:block">
+        <div className="flex items-center justify-between border-b border-border/70 px-5 py-4">
+          <div>
+            <h2 className="text-sm font-medium text-foreground">
+              Maintenance ledger
+            </h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              A chronological record of dues, payments, and receipts.
+            </p>
+          </div>
+          <span className="rounded-md bg-muted px-2 py-1 text-[10px] font-medium text-muted-foreground">
+            {history.length} records
+          </span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-muted/30 text-[11px] font-mono uppercase tracking-wider text-muted-foreground border-b border-border/60">
-              <tr>
-                <th className="px-5 py-3.5">Billing Due Date</th>
-                <th className="px-5 py-3.5">Billed Amount</th>
-                <th className="px-5 py-3.5">Settlement Date</th>
-                <th className="px-5 py-3.5">Payment Method</th>
-                <th className="px-5 py-3.5">Audit Status</th>
-                <th className="px-5 py-3.5 text-right">Invoice</th>
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-border/70 bg-muted/30 text-[11px] font-medium text-muted-foreground">
+                <th className="px-5 py-3">Due date</th>
+                <th className="px-5 py-3">Amount</th>
+                <th className="px-5 py-3">Paid date</th>
+                <th className="px-5 py-3">Method</th>
+                <th className="px-5 py-3">Status</th>
+                <th className="px-5 py-3 text-right">Document</th>
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-border/60 font-sans">
+            <tbody className="divide-y divide-border/60 text-[13px]">
               {history.map((record) => (
-                <tr key={record._id} className="hover:bg-muted/20 transition-colors">
-                  <td className="px-5 py-4 font-mono text-muted-foreground">
+                <tr
+                  key={record._id}
+                  className="transition-colors hover:bg-muted/25"
+                >
+                  <td className="px-5 py-3.5 text-muted-foreground">
                     {formatDate(record.dueDate)}
                   </td>
-
-                  <td className="px-5 py-4 font-bold text-foreground">
+                  <td className="px-5 py-3.5 font-medium text-foreground tabular-nums">
                     {formatCurrency(
                       record.status === "paid"
                         ? record.monthlyAmount
                         : record.pendingAmount
                     )}
                   </td>
-
-                  <td className="px-5 py-4 text-muted-foreground font-mono">
+                  <td className="px-5 py-3.5 text-muted-foreground">
                     {record.paidAt ? formatDate(record.paidAt) : "—"}
                   </td>
-
-                  <td className="px-5 py-4 text-muted-foreground font-mono uppercase text-[11px]">
+                  <td className="px-5 py-3.5 capitalize text-muted-foreground">
                     {record.paymentMethod?.replace("_", " ") ?? "—"}
                   </td>
-
-                  <td className="px-5 py-4">
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-mono font-semibold uppercase ${
-                        record.status === "paid"
-                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                          : record.status === "overdue"
-                          ? "bg-destructive/10 text-destructive border border-destructive/20"
-                          : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
-                      }`}
+                  <td className="px-5 py-3.5">
+                    <StatusBadge
+                      variant={statusVariant(record.status)}
+                      size="sm"
                     >
-                      <span className={`h-1 w-1 rounded-full ${record.status === "paid" ? "bg-emerald-500" : "bg-amber-500"}`} />
                       {record.status}
-                    </span>
+                    </StatusBadge>
                   </td>
-
-                  <td className="px-5 py-4 text-right">
+                  <td className="px-5 py-3.5 text-right">
                     <Link
                       href={`/maintenance/invoice/${record._id}`}
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-[#315CF5] hover:underline"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                     >
-                      <span>Receipt</span>
+                      Open
                       <ArrowUpRight className="h-3 w-3" />
                     </Link>
                   </td>
@@ -97,47 +116,45 @@ export default function HistoryTable({ history }: HistoryTableProps) {
         </div>
       </div>
 
-      {/* Mobile Card Layout (Shown on small screens, preventing table overflow) */}
-      <div className="md:hidden space-y-3">
+      <div className="space-y-2.5 md:hidden">
         {history.map((record) => (
           <div
             key={record._id}
-            className="rounded-2xl border border-border/80 bg-card p-4 shadow-xs space-y-3"
+            className="rounded-2xl border border-border/80 bg-card p-4 shadow-card"
           >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-mono text-muted-foreground">
-                Due: {formatDate(record.dueDate)}
-              </span>
-              <span
-                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-mono font-semibold uppercase ${
-                  record.status === "paid"
-                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                }`}
-              >
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[11px] text-muted-foreground">
+                Due {formatDate(record.dueDate)}
+              </p>
+              <StatusBadge variant={statusVariant(record.status)} size="sm">
                 {record.status}
-              </span>
+              </StatusBadge>
             </div>
 
-            <div className="flex items-baseline justify-between pt-1">
+            <div className="mt-3 flex items-end justify-between gap-3">
               <div>
-                <span className="text-xl font-bold text-foreground">
+                <p className="text-xl font-semibold tracking-tight text-foreground tabular-nums">
                   {formatCurrency(
                     record.status === "paid"
                       ? record.monthlyAmount
                       : record.pendingAmount
                   )}
-                </span>
-                <p className="text-[11px] text-muted-foreground font-mono mt-0.5">
-                  {record.paidAt ? `Paid on ${formatDate(record.paidAt)}` : "Awaiting payment"}
+                </p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  {record.paidAt
+                    ? `Paid ${formatDate(record.paidAt)}`
+                    : "Awaiting payment"}
+                  {record.paymentMethod
+                    ? ` · ${record.paymentMethod.replace("_", " ")}`
+                    : ""}
                 </p>
               </div>
 
               <Link
                 href={`/maintenance/invoice/${record._id}`}
-                className="inline-flex items-center gap-1 rounded-lg bg-black/5 dark:bg-white/5 border border-border px-3 py-1.5 text-xs font-semibold text-foreground"
+                className="inline-flex h-8 items-center gap-1 rounded-lg border border-border bg-card px-2.5 text-[11px] font-medium text-foreground"
               >
-                <span>Invoice</span>
+                Invoice
                 <ArrowUpRight className="h-3 w-3" />
               </Link>
             </div>

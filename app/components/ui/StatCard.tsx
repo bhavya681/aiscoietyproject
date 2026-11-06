@@ -23,48 +23,54 @@ export default function StatCard({
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-2xl border border-border/80 bg-card p-5 sm:p-6 transition-all duration-300 hover:shadow-md hover:border-[#315CF5]/30",
+        "rounded-2xl border border-border/80 bg-card p-5 shadow-card",
         className
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="space-y-1.5 min-w-0">
+        <div className="min-w-0 space-y-2">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground truncate">
+            <span className="truncate text-xs font-medium text-muted-foreground">
               {title}
             </span>
             {badge && (
-              <span className="rounded-full bg-[#315CF5]/10 px-2 py-0.5 text-[10px] font-mono font-medium text-[#315CF5]">
+              <span className="rounded-md bg-accent px-1.5 py-0.5 text-[10px] font-medium text-accent-foreground">
                 {badge}
               </span>
             )}
           </div>
-          <p className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground truncate">
+          <p className="truncate text-[26px] font-semibold tracking-[-0.03em] text-foreground tabular-nums">
             {value}
           </p>
         </div>
 
         {icon && (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground transition-colors group-hover:bg-[#315CF5]/10 group-hover:text-[#315CF5]">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-muted text-muted-foreground">
             {icon}
           </div>
         )}
       </div>
 
       {(description || trend) && (
-        <div className="mt-4 flex items-center gap-2 text-xs border-t border-border/40 pt-3">
+        <div className="mt-4 flex items-center gap-2 border-t border-border/60 pt-3 text-[11px]">
           {trend && (
             <span
               className={cn(
-                "font-semibold font-mono",
-                trend.positive ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"
+                "inline-flex items-center gap-1 font-medium",
+                trend.positive ? "text-emerald" : "text-destructive"
               )}
             >
+              <span
+                className={cn(
+                  "h-1.5 w-1.5 rounded-full",
+                  trend.positive ? "bg-emerald" : "bg-destructive"
+                )}
+              />
               {trend.value}
             </span>
           )}
           {description && (
-            <span className="text-muted-foreground truncate font-sans">
+            <span className="truncate text-muted-foreground">
               {description}
             </span>
           )}

@@ -11,6 +11,11 @@ import type { RunnableConfig } from "@langchain/core/runnables";
 
 import type { AuthUser } from "@/app/lib/auth";
 
+import {
+  OPENUI_SYSTEM_PROMPT,
+  parseOpenUIAssistantAnswer,
+} from "@/app/lib/openui/server";
+
 import { retrieveSocietyKnowledge } from "./rag";
 import { withAuthUser } from "./toolContext";
 import { ASSISTANT_TOOLS, getToolByName } from "./tools";
@@ -63,7 +68,10 @@ export type ConfirmationRequest = {
 };
 
 export type AssistantResult = {
+  /** Plain-text summary used for conversation history. */
   message: string;
+  /** OpenUI Lang program rendered by the client. */
+  ui: string;
   toolCalls: ToolCallSummary[];
   /** Where the answer's data came from. */
   source: "rag" | "tool" | "both" | "none";
@@ -146,7 +154,8 @@ You answer in two very different ways, and you must keep them separate.
    Answer only from the "SOCIETY KNOWLEDGE" section provided below.
    That text is retrieved from the society's official document and is the only
    source of truth for policy. Never guess, extrapolate or use outside
-   knowledge. If the knowledge does not contain the answer, reply exactly:
+   knowledge. If the knowledge does not contain the answer, the first TextBlock
+   in your OpenUI response must say exactly:
    "${NO_KNOWLEDGE_MESSAGE}"
    If the question is not about this society at all (for example the weather),
    say you can only help with society maintenance, policies and the resident's
@@ -166,7 +175,9 @@ PAYMENTS ARE SAFE BY DESIGN:
      confirm. Never claim the payment already succeeded.
    - If request_payment says there is nothing to pay, say so.
 
-Be concise and friendly. Use plain text. Format currency as ₹4,000.
+Be concise and friendly. Compose the response as OpenUI Lang using the component
+library described below. Put the explanation in a TextBlock and use the other
+components only for real structured data. Format currency as ₹4,000.
 
 SOCIETY KNOWLEDGE
 -----------------
@@ -313,7 +324,10 @@ export async function askMaintenanceAssistant(options: {
 
   const messages: BaseMessage[] = [
     new SystemMessage(
-      SYSTEM_PROMPT.replace("{knowledge}", buildKnowledgeBlock(knowledge))
+      [
+        SYSTEM_PROMPT.replace("{knowledge}", buildKnowledgeBlock(knowledge)),
+        OPENUI_SYSTEM_PROMPT,
+      ].join("\n\n")
     ),
     ...toBaseMessages(history, question),
   ];
@@ -359,6 +373,10 @@ export async function askMaintenanceAssistant(options: {
       : NO_KNOWLEDGE_MESSAGE;
   }
 
+  // The model writes OpenUI Lang. Validate it here and derive the plain-text
+  // summary that will be replayed as conversation history.
+  const parsed = parseOpenUIAssistantAnswer(answer);
+
   const hasKnowledge = knowledge.length > 0;
 
   const source: AssistantResult["source"] = usedTool
@@ -369,5 +387,11 @@ export async function askMaintenanceAssistant(options: {
       ? "rag"
       : "none";
 
-  return { message: answer, toolCalls, source, confirmation };
+  return {
+    message: parsed.message,
+    ui: parsed.ui,
+    toolCalls,
+    source,
+    confirmation,
+  };
 }

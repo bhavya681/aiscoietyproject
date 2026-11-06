@@ -1,21 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTheme } from "@/app/lib/theme";
+import {
+  AlertCircle,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  Mail,
+} from "lucide-react";
+
+import AuthShell from "@/app/components/ui/AuthShell";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { resolvedTheme } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleLogin(e: FormEvent) {
-    e.preventDefault();
+  async function handleLogin(event: FormEvent) {
+    event.preventDefault();
 
     setLoading(true);
     setError("");
@@ -23,13 +31,8 @@ export default function LoginPage() {
     try {
       const response = await fetch("/api/users/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
@@ -39,8 +42,6 @@ export default function LoginPage() {
         return;
       }
 
-      // The JWT is set as an httpOnly cookie by the server, so there is
-      // nothing sensitive to store in the browser.
       router.push("/dashboard");
       router.refresh();
     } catch {
@@ -51,103 +52,134 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-6">
-      <div className="w-full max-w-md rounded-2xl bg-card p-8 shadow-2xl">
-        <div className="mb-8">
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-sm font-semibold text-primary"
-          >
-            <img
-              src={resolvedTheme === "dark" ? "/logo.png" : "/logo-light.png"}
-              alt="SocietyAI"
-              className="h-6 w-6 rounded-md object-contain"
-            />
-            ← SocietyAI
-          </Link>
-
-          <h1 className="mt-8 text-3xl font-bold text-foreground">
-            Welcome back
-          </h1>
-
-          <p className="mt-2 text-sm text-muted-foreground">
-            Sign in to your society account.
-          </p>
-        </div>
-
-        {error && (
-          <div className="mb-5 rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleLogin} className="space-y-5">
-          <Input
-            label="Email"
-            type="email"
-            value={email}
-            onChange={setEmail}
-            placeholder="you@example.com"
-          />
-
-          <Input
-            label="Password"
-            type="password"
-            value={password}
-            onChange={setPassword}
-            placeholder="••••••••"
-          />
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/80 disabled:opacity-50"
-          >
-            {loading ? "Signing in..." : "Sign in"}
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-slate-500">
-          Don&apos;t have an account?{" "}
-          <Link
-            href="/signup"
-            className="font-semibold text-primary"
-          >
-            Create one
-          </Link>
+    <AuthShell>
+      <div>
+        <p className="text-xs font-medium text-primary">Welcome back</p>
+        <h1 className="mt-2 text-[30px] font-semibold tracking-[-0.035em] text-foreground">
+          Sign in to your account
+        </h1>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          Enter your resident credentials to open your workspace.
         </p>
       </div>
-    </main>
+
+      {error && (
+        <div className="mt-6 flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/[0.06] px-3.5 py-3 text-xs text-destructive">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      <form onSubmit={handleLogin} className="mt-7 space-y-4">
+        <Field
+          label="Email address"
+          type="email"
+          value={email}
+          onChange={setEmail}
+          placeholder="you@example.com"
+          icon={Mail}
+          autoComplete="email"
+        />
+
+        <Field
+          label="Password"
+          type={showPassword ? "text" : "password"}
+          value={password}
+          onChange={setPassword}
+          placeholder="Enter your password"
+          icon={LockKeyhole}
+          autoComplete="current-password"
+          trailing={
+            <button
+              type="button"
+              onClick={() => setShowPassword((previous) => !previous)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          }
+        />
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-primary text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {loading ? "Signing in..." : "Sign in"}
+          {!loading && <ArrowRight className="h-4 w-4" />}
+        </button>
+      </form>
+
+      <div className="my-7 flex items-center gap-3">
+        <span className="h-px flex-1 bg-border" />
+        <span className="text-[11px] text-muted-foreground">
+          New to the portal?
+        </span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
+
+      <Link
+        href="/signup"
+        className="flex h-11 w-full items-center justify-center rounded-[10px] border border-border bg-card text-sm font-medium text-foreground transition-colors hover:bg-muted"
+      >
+        Create a resident account
+      </Link>
+
+      <p className="mt-8 text-center text-[11px] leading-relaxed text-muted-foreground">
+        Access is limited to residents of Palm Grove Residency. Contact your
+        society administrator if you need help with your account.
+      </p>
+    </AuthShell>
   );
 }
 
-function Input({
+function Field({
   label,
   type,
   value,
   onChange,
   placeholder,
+  icon: Icon,
+  autoComplete,
+  trailing,
 }: {
   label: string;
   type: string;
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
+  icon: React.ComponentType<{ className?: string }>;
+  autoComplete?: string;
+  trailing?: React.ReactNode;
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-medium text-muted-foreground">
+      <span className="mb-1.5 block text-xs font-medium text-foreground">
         {label}
       </span>
 
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        required
-        className="h-11 w-full rounded-xl border border-border bg-card px-3 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
-      />
+      <span className="relative block">
+        <Icon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          type={type}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          required
+          className="h-11 w-full rounded-[10px] border border-input bg-card pl-10 pr-10 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-4 focus:ring-primary/10"
+        />
+        {trailing && (
+          <span className="absolute right-1.5 top-1/2 -translate-y-1/2">
+            {trailing}
+          </span>
+        )}
+      </span>
     </label>
   );
 }

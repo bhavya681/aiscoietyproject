@@ -4,49 +4,49 @@
 
 @layer base {
   :root {
-    /* Light theme tokens */
-    --background: #f8fafc;
-    --foreground: #0f172a;
+    /* Light theme: warm paper, ink, and a single moss accent. */
+    --background: #f5f5f1;
+    --foreground: #171b18;
     --card: #ffffff;
-    --card-foreground: #0f172a;
-    --muted: #f1f5f9;
-    --muted-foreground: #64748b;
-    --border: #e2e8f0;
-    --input: #e2e8f0;
-    --ring: #6366f1;
-    --primary: #4f46e5;
-    --primary-foreground: #ffffff;
-    --secondary: #f1f5f9;
-    --secondary-foreground: #0f172a;
-    --accent: #eef2ff;
-    --accent-foreground: #4338ca;
-    --destructive: #ef4444;
+    --card-foreground: #171b18;
+    --muted: #eeefe9;
+    --muted-foreground: #68736b;
+    --border: #e1e3db;
+    --input: #d9dcd2;
+    --ring: #1f6b52;
+    --primary: #1f6b52;
+    --primary-foreground: #f7fbf8;
+    --secondary: #eceee7;
+    --secondary-foreground: #222922;
+    --accent: #e6f0ea;
+    --accent-foreground: #14523e;
+    --destructive: #c4453d;
     --destructive-foreground: #ffffff;
-    --emerald: #10b981;
-    --amber: #f59e0b;
-    --radius: 0.75rem;
+    --emerald: #11835c;
+    --amber: #b7791f;
+    --radius: 0.875rem;
   }
 
   .dark {
-    /* Dark theme tokens */
-    --background: #09090b;
-    --foreground: #fafafa;
-    --card: #111114;
-    --card-foreground: #fafafa;
-    --muted: #18181b;
-    --muted-foreground: #a1a1aa;
-    --border: #27272a;
-    --input: #27272a;
-    --ring: #818cf8;
-    --primary: #6366f1;
-    --primary-foreground: #ffffff;
-    --secondary: #1f1f23;
-    --secondary-foreground: #fafafa;
-    --accent: #1e1b4b;
-    --accent-foreground: #a5b4fc;
-    --destructive: #f87171;
-    --destructive-foreground: #0b0b0c;
-    --emerald: #34d399;
+    /* Dark theme: near-black green with a soft mint accent. */
+    --background: #0b0f0c;
+    --foreground: #f2f5f1;
+    --card: #121713;
+    --card-foreground: #f2f5f1;
+    --muted: #191f1a;
+    --muted-foreground: #9aa69e;
+    --border: #28312a;
+    --input: #303a32;
+    --ring: #79c9a6;
+    --primary: #79c9a6;
+    --primary-foreground: #08130f;
+    --secondary: #1a211b;
+    --secondary-foreground: #eef3ef;
+    --accent: #172b22;
+    --accent-foreground: #9fdec2;
+    --destructive: #f07a72;
+    --destructive-foreground: #1a0b0a;
+    --emerald: #4ade80;
     --amber: #fbbf24;
   }
 }
@@ -192,6 +192,50 @@
   .dark .border-editorial {
     border-color: rgba(255, 255, 255, 0.08);
   }
+
+  /* Quiet elevation used across app cards. */
+  .shadow-card {
+    box-shadow:
+      0 1px 2px rgba(23, 27, 24, 0.04),
+      0 12px 32px -24px rgba(23, 27, 24, 0.18);
+  }
+  .dark .shadow-card {
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.32),
+      0 16px 40px -28px rgba(0, 0, 0, 0.8);
+  }
+
+  /* Hairline grid for branded panels and auth screens. */
+  .bg-app-grid {
+    background-image:
+      linear-gradient(to right, color-mix(in srgb, currentColor 8%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in srgb, currentColor 8%, transparent) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  .bg-app-dots {
+    background-image: radial-gradient(
+      color-mix(in srgb, currentColor 10%, transparent) 1px,
+      transparent 1px
+    );
+    background-size: 20px 20px;
+  }
+}
+
+@media print {
+  body {
+    background: #ffffff !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-plain {
+    border: 0 !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+  }
 }
 
 /* Bubble arrow button styling inspired by Legency Media */
@@ -211,15 +255,15 @@
   text-decoration: none;
 }
 
-.bubble-cta-blue {
-  background-color: #315cf5;
-  color: #ffffff;
-  box-shadow: 0 4px 20px -2px rgba(49, 92, 245, 0.25);
+.bubble-cta-primary {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 4px 20px -2px color-mix(in srgb, var(--primary) 28%, transparent);
 }
-.bubble-cta-blue:hover {
-  background-color: #2448d4;
+.bubble-cta-primary:hover {
+  background-color: color-mix(in srgb, var(--primary) 88%, black);
   transform: translateY(-1px);
-  box-shadow: 0 8px 25px -4px rgba(49, 92, 245, 0.35);
+  box-shadow: 0 8px 25px -4px color-mix(in srgb, var(--primary) 38%, transparent);
 }
 
 .bubble-cta-dark {
