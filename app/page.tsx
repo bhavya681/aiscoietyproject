@@ -1,12 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTheme } from "@/app/lib/theme";
+import { apiFetch } from "@/app/lib/api";
+import type { Profile, ProfileResponse } from "@/app/lib/types";
 import ThemeToggle from "@/app/components/ui/ThemeToggle";
 import {
   ArrowUpRight,
+  Building2,
+  LogOut,
   Menu,
   X,
   Sparkles,
@@ -16,9 +20,49 @@ import {
 } from "lucide-react";
 
 export default function Home() {
+  const router = useRouter();
   const { resolved } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeAiDemo, setActiveAiDemo] = useState(0);
+  const [user, setUser] = useState<Profile | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadProfile() {
+      try {
+        const data = await apiFetch<ProfileResponse>("/users/profile");
+        if (!cancelled) {
+          setUser(data.profile);
+        }
+      } catch {
+        // Not signed in — keep the default marketing CTAs.
+      }
+    }
+
+    loadProfile();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleLogout = useCallback(async () => {
+    setLoggingOut(true);
+    try {
+      await apiFetch("/users/logout", { method: "POST" });
+    } catch {
+      // Ignore; redirect regardless.
+    } finally {
+      setLoggingOut(false);
+      setUser(null);
+      router.push("/");
+      router.refresh();
+    }
+  }, [router]);
+
+  const signedIn = Boolean(user);
 
   // Close mobile menu on resize to desktop
   useEffect(() => {
@@ -59,18 +103,12 @@ export default function Home() {
           1. NAVIGATION (Legency Media style: minimal, tactile, clean)
          ======================================================== */}
       <header className="sticky top-0 z-50 border-b border-black/[0.06] dark:border-white/[0.08] bg-background/85 dark:bg-background/85 backdrop-blur-xl">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 sm:px-8">
+        <div className="flex h-20 w-full items-center justify-between px-6 sm:px-8">
           
           {/* Brand Logo & Editorial Wordmark */}
           <Link href="/" className="group flex items-center gap-3">
             <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white dark:bg-card border border-black/[0.08] dark:border-white/[0.1] shadow-sm transition-transform duration-200 group-hover:scale-105">
-              <Image
-                src={resolved === "dark" ? "/logo.png" : "/logo-light.png"}
-                alt="SocietyAI Logo"
-                width={24}
-                height={24}
-                className="h-6 w-6 object-contain"
-              />
+              <Building2 className="h-6 w-6 text-primary" />
             </div>
             <div className="flex flex-col">
               <span className="font-semibold text-lg tracking-tight-editorial font-sans leading-none flex items-center gap-1.5">
@@ -118,22 +156,45 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <ThemeToggle />
 
-            <Link
-              href="/login"
-              className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium text-muted-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors"
-            >
-              Sign In
-            </Link>
+            {signedIn ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium text-muted-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors disabled:opacity-50"
+              >
+                {loggingOut ? "Signing out..." : "Sign out"}
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium text-muted-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors"
+              >
+                Sign In
+              </Link>
+            )}
 
-            <Link
-              href="/signup"
-              className="bubble-cta bubble-cta-primary"
-            >
-              <span>Get Started</span>
-              <span className="bubble-cta-arrow">
-                <ArrowUpRight className="h-3.5 w-3.5" />
-              </span>
-            </Link>
+            {signedIn ? (
+              <Link
+                href="/dashboard"
+                className="bubble-cta bubble-cta-primary"
+              >
+                <span>Go to Dashboard</span>
+                <span className="bubble-cta-arrow">
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </span>
+              </Link>
+            ) : (
+              <Link
+                href="/signup"
+                className="bubble-cta bubble-cta-primary"
+              >
+                <span>Get Started</span>
+                <span className="bubble-cta-arrow">
+                  <ArrowUpRight className="h-3.5 w-3.5" />
+                </span>
+              </Link>
+            )}
 
             {/* Mobile menu toggle button */}
             <button
@@ -180,20 +241,45 @@ export default function Home() {
                 Workflow
               </Link>
               <div className="pt-2 flex flex-col gap-3">
-                <Link
-                  href="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2.5 rounded-xl border border-border text-sm font-medium"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/signup"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium"
-                >
-                  Create Account
-                </Link>
+                {signedIn ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    disabled={loggingOut}
+                    className="w-full text-center py-2.5 rounded-xl border border-border text-sm font-medium disabled:opacity-50"
+                  >
+                    {loggingOut ? "Signing out..." : "Sign out"}
+                  </button>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full text-center py-2.5 rounded-xl border border-border text-sm font-medium"
+                  >
+                    Sign In
+                  </Link>
+                )}
+
+                {signedIn ? (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full text-center py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium"
+                  >
+                    Go to Dashboard
+                  </Link>
+                ) : (
+                  <Link
+                    href="/signup"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full text-center py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium"
+                  >
+                    Create Account
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -206,25 +292,24 @@ export default function Home() {
       <section className="relative overflow-hidden pt-12 pb-20 sm:pt-20 sm:pb-32 bg-dither-pattern">
         
         {/* Editorial Sub-bar & Metadata badge */}
-        <div className="mx-auto max-w-7xl px-6 sm:px-8">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-black/[0.08] dark:border-white/[0.08] pb-6">
-            <div className="inline-flex items-center gap-2.5">
-              <span className="flex h-2 w-2 rounded-full bg-primary animate-ping" />
-              <span className="text-xs uppercase tracking-widest font-mono text-muted-foreground dark:text-muted-foreground">
-                Next-Gen Residential Intelligence
-              </span>
-            </div>
-            <div className="hidden sm:flex items-center gap-6 text-xs font-mono text-muted-foreground dark:text-muted-foreground">
-              <span>RAG RETRIEVAL 2.0</span>
-              <span>•</span>
-              <span>INSTANT RECONCILIATION</span>
-              <span>•</span>
-              <span>RESIDENT OS</span>
-            </div>
+        <div className="flex w-full items-center justify-between gap-4 border-b border-black/[0.08] dark:border-white/[0.08] pb-6 px-6 sm:px-8">
+          <div className="inline-flex items-center gap-2.5">
+            <span className="flex h-2 w-2 rounded-full bg-primary animate-ping" />
+            <span className="text-xs uppercase tracking-widest font-mono text-muted-foreground dark:text-muted-foreground">
+              Next-Gen Residential Intelligence
+            </span>
           </div>
+          <div className="hidden sm:flex items-center gap-6 text-xs font-mono text-muted-foreground dark:text-muted-foreground">
+            <span>RAG RETRIEVAL 2.0</span>
+            <span>•</span>
+            <span>INSTANT RECONCILIATION</span>
+            <span>•</span>
+            <span>RESIDENT OS</span>
+          </div>
+        </div>
 
           {/* Hero Headline — Bold, Editorial, Confident */}
-          <div className="mt-12 sm:mt-16 max-w-5xl">
+          <div className="mt-12 sm:mt-16 max-w-5xl px-6 sm:px-8">
             <h1 className="text-4xl sm:text-6xl lg:text-7xl xl:text-[84px] font-semibold tracking-tighter-editorial leading-[0.98] text-foreground dark:text-foreground">
               Society management. <br />
               <span className="text-primary inline-block mt-1 sm:mt-2">
@@ -234,22 +319,34 @@ export default function Home() {
           </div>
 
           {/* Two-Column Pitch & Action Bar */}
-          <div className="mt-8 sm:mt-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-end border-b border-black/[0.08] dark:border-white/[0.08] pb-12">
+          <div className="mt-8 sm:mt-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-end border-b border-black/[0.08] dark:border-white/[0.08] pb-12 px-6 sm:px-8">
             <div className="lg:col-span-7">
               <p className="text-lg sm:text-xl md:text-2xl font-normal leading-relaxed text-muted-foreground dark:text-muted-foreground max-w-2xl">
                 Manage maintenance, track payments, access invoices, and get instant answers with an AI assistant built for modern residential communities.
               </p>
             </div>
             <div className="lg:col-span-5 flex flex-wrap items-center gap-4 sm:justify-end">
-              <Link
-                href="/signup"
-                className="bubble-cta bubble-cta-primary text-base py-2.5 px-6"
-              >
-                <span>Get Started Now</span>
-                <span className="bubble-cta-arrow">
-                  <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </Link>
+              {signedIn ? (
+                <Link
+                  href="/dashboard"
+                  className="bubble-cta bubble-cta-primary text-base py-2.5 px-6"
+                >
+                  <span>Open Dashboard</span>
+                  <span className="bubble-cta-arrow">
+                    <ChevronRight className="h-4 w-4" />
+                  </span>
+                </Link>
+              ) : (
+                <Link
+                  href="/signup"
+                  className="bubble-cta bubble-cta-primary text-base py-2.5 px-6"
+                >
+                  <span>Get Started Now</span>
+                  <span className="bubble-cta-arrow">
+                    <ArrowUpRight className="h-4 w-4" />
+                  </span>
+                </Link>
+              )}
               <Link
                 href="#platform"
                 className="bubble-cta bubble-cta-ghost text-base py-2.5 px-5"
@@ -263,7 +360,7 @@ export default function Home() {
           </div>
 
           {/* Proof / Metric Pillars — Legency Media inspired */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 py-8 border-b border-black/[0.08] dark:border-white/[0.08]">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 py-8 border-b border-black/[0.08] dark:border-white/[0.08] px-6 sm:px-8">
             <div className="flex flex-col">
               <span className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground dark:text-white">
                 100%
@@ -491,14 +588,13 @@ export default function Home() {
             </div>
           </div>
 
-        </div>
-      </section>
+        </section>
 
       {/* ========================================================
           3. EDITORIAL PRODUCT INTRODUCTION (Two-Column Asymmetric)
          ======================================================== */}
       <section id="platform" className="border-t border-b border-black/[0.08] dark:border-white/[0.08] py-24 sm:py-32 bg-background">
-        <div className="mx-auto max-w-7xl px-6 sm:px-8">
+        <div className="flex w-full px-6 sm:px-8">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
             
@@ -549,7 +645,7 @@ export default function Home() {
           4. FEATURE SHOWCASE (Numbered Editorial Chapters 01 - 04)
          ======================================================== */}
       <section id="features" className="py-24 sm:py-32 bg-background dark:bg-background">
-        <div className="mx-auto max-w-7xl px-6 sm:px-8">
+        <div className="flex w-full px-6 sm:px-8">
           
           <div className="border-b border-black/[0.08] dark:border-white/[0.08] pb-8 mb-16 flex flex-wrap items-end justify-between gap-6">
             <div>
@@ -915,15 +1011,27 @@ export default function Home() {
                 <span className="text-xs font-mono text-neutral-400">
                   Ready to test with your flat details?
                 </span>
-                <Link
-                  href="/login"
-                  className="bubble-cta bubble-cta-primary text-xs py-2 px-4"
-                >
-                  <span>Log in to test live assistant</span>
-                  <span className="bubble-cta-arrow">
-                    <ChevronRight className="h-3 w-3" />
-                  </span>
-                </Link>
+                {signedIn ? (
+                  <Link
+                    href="/ai"
+                    className="bubble-cta bubble-cta-primary text-xs py-2 px-4"
+                  >
+                    <span>Open AI Concierge</span>
+                    <span className="bubble-cta-arrow">
+                      <ChevronRight className="h-3 w-3" />
+                    </span>
+                  </Link>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="bubble-cta bubble-cta-primary text-xs py-2 px-4"
+                  >
+                    <span>Log in to test live assistant</span>
+                    <span className="bubble-cta-arrow">
+                      <ChevronRight className="h-3 w-3" />
+                    </span>
+                  </Link>
+                )}
               </div>
 
             </div>
@@ -937,7 +1045,7 @@ export default function Home() {
           6. ASYMMETRIC CAPABILITIES MATRIX
          ======================================================== */}
       <section className="py-24 sm:py-32 bg-background dark:bg-background">
-        <div className="mx-auto max-w-7xl px-6 sm:px-8">
+        <div className="flex w-full px-6 sm:px-8">
           
           <div className="max-w-2xl">
             <span className="font-mono text-xs uppercase tracking-widest text-primary font-semibold">
@@ -1001,7 +1109,7 @@ export default function Home() {
           7. HOW IT WORKS (3-Step Editorial Workflow)
          ======================================================== */}
       <section id="workflow" className="border-t border-black/[0.08] dark:border-white/[0.08] py-24 sm:py-32 bg-background">
-        <div className="mx-auto max-w-7xl px-6 sm:px-8">
+        <div className="flex w-full px-6 sm:px-8">
           
           <div className="border-b border-black/[0.08] dark:border-white/[0.08] pb-8 mb-16 flex flex-wrap items-end justify-between gap-6">
             <div>
@@ -1093,25 +1201,51 @@ export default function Home() {
           </p>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Link
-              href="/signup"
-              className="bubble-cta bubble-cta-primary text-base py-3 px-8"
-            >
-              <span>Get Started Now</span>
-              <span className="bubble-cta-arrow">
-                <ArrowUpRight className="h-4 w-4" />
-              </span>
-            </Link>
+            {signedIn ? (
+              <Link
+                href="/dashboard"
+                className="bubble-cta bubble-cta-primary text-base py-3 px-8"
+              >
+                <span>Open Dashboard</span>
+                <span className="bubble-cta-arrow">
+                  <ChevronRight className="h-4 w-4" />
+                </span>
+              </Link>
+            ) : (
+              <Link
+                href="/signup"
+                className="bubble-cta bubble-cta-primary text-base py-3 px-8"
+              >
+                <span>Get Started Now</span>
+                <span className="bubble-cta-arrow">
+                  <ArrowUpRight className="h-4 w-4" />
+                </span>
+              </Link>
+            )}
 
-            <Link
-              href="/login"
-              className="bubble-cta bubble-cta-ghost text-base py-3 px-6 text-white border-white/20"
-            >
-              <span>Sign In to Your Society</span>
-              <span className="bubble-cta-arrow">
-                <ChevronRight className="h-4 w-4" />
-              </span>
-            </Link>
+            {signedIn ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="bubble-cta bubble-cta-ghost text-base py-3 px-6 text-white border-white/20 disabled:opacity-50"
+              >
+                <span>{loggingOut ? "Signing out..." : "Sign out"}</span>
+                <span className="bubble-cta-arrow">
+                  <LogOut className="h-4 w-4" />
+                </span>
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="bubble-cta bubble-cta-ghost text-base py-3 px-6 text-white border-white/20"
+              >
+                <span>Sign In to Your Society</span>
+                <span className="bubble-cta-arrow">
+                  <ChevronRight className="h-4 w-4" />
+                </span>
+              </Link>
+            )}
           </div>
 
           <div className="mt-14 flex flex-wrap items-center justify-center gap-8 text-xs font-mono text-neutral-500">
@@ -1129,7 +1263,7 @@ export default function Home() {
           9. FOOTER (Minimal, refined, Legency Media hierarchy)
          ======================================================== */}
       <footer className="border-t border-black/[0.08] dark:border-white/[0.08] bg-background dark:bg-background py-16">
-        <div className="mx-auto max-w-7xl px-6 sm:px-8">
+        <div className="flex w-full px-6 sm:px-8">
           
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-black/[0.08] dark:border-white/[0.08]">
             
@@ -1137,13 +1271,7 @@ export default function Home() {
             <div className="md:col-span-5">
               <Link href="/" className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white dark:bg-card border border-black/[0.08] dark:border-white/[0.1]">
-                  <Image
-                    src={resolved === "dark" ? "/logo.png" : "/logo-light.png"}
-                    alt="SocietyAI"
-                    width={20}
-                    height={20}
-                    className="h-5 w-5 object-contain"
-                  />
+                  <Building2 className="h-5 w-5 text-primary" />
                 </div>
                 <span className="font-semibold text-lg tracking-tight-editorial font-sans">
                   Society<span className="text-primary">AI</span>

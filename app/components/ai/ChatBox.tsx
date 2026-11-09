@@ -304,7 +304,7 @@ export default function ChatBox() {
         onScroll={handleScroll}
         className="relative z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain"
       >
-        <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-3 py-5 sm:px-6 sm:py-7">
+        <div className="flex min-h-full w-full flex-col px-3 py-5 sm:px-6 sm:py-7">
           {showWelcome ? (
             <section className="flex flex-1 flex-col items-center justify-center py-4 text-center sm:py-10">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary shadow-sm">
@@ -537,7 +537,7 @@ export default function ChatBox() {
       </div>
 
       <div className="relative z-10 shrink-0 border-t border-border/60 bg-background/85 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl sm:px-6 sm:pt-4">
-        <div className="mx-auto w-full max-w-3xl">
+        <div className="flex w-full">
           <form
             onSubmit={handleSubmit}
             className="flex items-end gap-2 rounded-[1.4rem] border border-border/80 bg-card p-2 shadow-lg shadow-black/[0.05] transition-all focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/10 dark:shadow-black/20"

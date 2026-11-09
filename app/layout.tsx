@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/app/lib/theme";
-import FaviconSwitcher from "@/app/components/FaviconSwitcher";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,10 +17,6 @@ export const metadata: Metadata = {
   title: "SocietyAI",
   description:
     "Society management with maintenance tracking, payments and an AI assistant.",
-  icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-  },
 };
 
 export default function RootLayout({
@@ -36,7 +31,6 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
           {children}
-          <FaviconSwitcher />
         </ThemeProvider>
       </body>
     </html>

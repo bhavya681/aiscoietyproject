@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { Building2, Menu } from "lucide-react";
 
 import type { Profile } from "@/app/lib/types";
 import ThemeToggle from "@/app/components/ui/ThemeToggle";
-import { useTheme } from "@/app/lib/theme";
 import { MobileSidebar } from "./Sidebar";
 
 type NavbarProps = {
@@ -34,7 +32,6 @@ function getPageLabel(pathname: string) {
 
 export default function Navbar({ user }: NavbarProps) {
   const pathname = usePathname();
-  const { resolved } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -50,23 +47,17 @@ export default function Navbar({ user }: NavbarProps) {
             <Menu className="h-4.5 w-4.5" />
           </button>
 
-          <Link
-            href="/dashboard"
-            className="flex min-w-0 items-center gap-2"
-          >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] border border-border/70 bg-card">
-              <Image
-                src={resolved === "dark" ? "/logo.png" : "/logo-light.png"}
-                alt="SocietyAI"
-                width={20}
-                height={20}
-                className="h-5 w-5 object-contain"
-              />
-            </span>
-            <span className="truncate text-sm font-semibold tracking-tight text-foreground">
-              {getPageLabel(pathname)}
-            </span>
-          </Link>
+<Link
+              href="/dashboard"
+              className="flex min-w-0 items-center gap-2"
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] border border-border/70 bg-card">
+                <Building2 className="h-5 w-5 text-primary" />
+              </span>
+              <span className="truncate text-sm font-semibold tracking-tight text-foreground">
+                {getPageLabel(pathname)}
+              </span>
+            </Link>
         </div>
 
         <ThemeToggle />
