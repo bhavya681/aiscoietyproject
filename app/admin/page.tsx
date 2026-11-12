@@ -3,14 +3,9 @@
 import { useEffect, useState } from "react";
 import {
   AlertCircle,
-  CalendarDays,
   CheckCircle2,
   RefreshCw,
-  Shield,
   Trash2,
-  Users,
-  Wallet,
-  Wrench,
 } from "lucide-react";
 
 import AppShell from "../components/layout/AppShell";
@@ -201,7 +196,7 @@ export default function AdminPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-6xl space-y-7">
+      <div className="w-full space-y-6 lg:space-y-8">
         <PageHeader
           eyebrow="Society administration"
           title="Admin panel"
@@ -237,53 +232,42 @@ export default function AdminPage() {
           </div>
         )}
 
-        <section className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-card">
-          <div className="grid divide-y divide-border/70 sm:grid-cols-4 sm:divide-x sm:divide-y-0">
-            <Stat
-              label="Residents"
-              value={String(users.length)}
-              detail="Registered accounts"
-              icon={Users}
-            />
-            <Stat
-              label="Maintenance records"
-              value={String(maintenance.length)}
-              detail="All billing cycles"
-              icon={Wrench}
-            />
-            <Stat
-              label="Open records"
-              value={String(openRecords)}
-              detail="Awaiting payment"
-              icon={CalendarDays}
-              tone={openRecords > 0 ? "warning" : "success"}
-            />
-            <Stat
-              label="Total outstanding"
-              value={formatCurrency(totalOutstanding)}
-              detail="Across all residents"
-              icon={Wallet}
-              tone={totalOutstanding > 0 ? "warning" : "success"}
-            />
-          </div>
+        <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Stat
+            label="Residents"
+            value={String(users.length)}
+            detail="Registered accounts"
+          />
+          <Stat
+            label="Maintenance records"
+            value={String(maintenance.length)}
+            detail="All billing cycles"
+          />
+          <Stat
+            label="Open records"
+            value={String(openRecords)}
+            detail="Awaiting payment"
+            tone={openRecords > 0 ? "warning" : "success"}
+          />
+          <Stat
+            label="Total outstanding"
+            value={formatCurrency(totalOutstanding)}
+            detail="Across all residents"
+            tone={totalOutstanding > 0 ? "warning" : "success"}
+          />
         </section>
 
         <form
           onSubmit={handleCreateMaintenance}
           className="rounded-2xl border border-border/80 bg-card p-5 shadow-card sm:p-6"
         >
-          <div className="flex items-start gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-accent text-accent-foreground">
-              <Wrench className="h-4 w-4" />
-            </span>
-            <div>
-              <h2 className="text-sm font-medium text-foreground">
-                Raise a maintenance charge
-              </h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Create a billing record for a resident&apos;s flat.
-              </p>
-            </div>
+          <div>
+            <h2 className="text-sm font-medium text-foreground">
+              Raise a maintenance charge
+            </h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Create a billing record for a resident&apos;s flat.
+            </p>
           </div>
 
           <div className="mt-5 grid gap-4 sm:grid-cols-3">
@@ -469,8 +453,7 @@ export default function AdminPage() {
             </div>
           ) : maintenance.length === 0 ? (
             <div className="px-5 py-12 text-center">
-              <Shield className="mx-auto h-8 w-8 text-muted-foreground/60" />
-              <p className="mt-3 text-sm font-medium text-foreground">
+              <p className="text-sm font-medium text-foreground">
                 No maintenance records yet
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
@@ -533,37 +516,29 @@ function Stat({
   label,
   value,
   detail,
-  icon: Icon,
   tone = "default",
 }: {
   label: string;
   value: string;
   detail: string;
-  icon: React.ComponentType<{ className?: string }>;
   tone?: "default" | "success" | "warning";
 }) {
-  const classes = {
-    default: "bg-muted text-muted-foreground",
-    success: "bg-emerald/10 text-emerald",
-    warning: "bg-amber/10 text-amber",
+  const dotClasses = {
+    default: "bg-muted-foreground/40",
+    success: "bg-emerald",
+    warning: "bg-amber",
   }[tone];
 
   return (
-    <div className="p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-medium text-muted-foreground">{label}</p>
-          <p className="mt-2 text-[23px] font-semibold tracking-[-0.03em] text-foreground tabular-nums">
-            {value}
-          </p>
-          <p className="mt-1 text-[11px] text-muted-foreground">{detail}</p>
-        </div>
-        <span
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] ${classes}`}
-        >
-          <Icon className="h-4 w-4" />
-        </span>
+    <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-card">
+      <div className="flex items-center gap-2">
+        <span className={`h-1.5 w-1.5 rounded-full ${dotClasses}`} />
+        <p className="text-xs font-medium text-muted-foreground">{label}</p>
       </div>
+      <p className="mt-2.5 text-[23px] font-semibold tracking-[-0.03em] text-foreground tabular-nums">
+        {value}
+      </p>
+      <p className="mt-1.5 text-[11px] text-muted-foreground">{detail}</p>
     </div>
   );
 }

@@ -56,8 +56,8 @@ export default function AppShell({
         <main
           className={
             fullBleed
-              ? "h-[calc(100dvh-3.5rem)] min-w-0 flex-1 overflow-hidden md:h-dvh"
-              : "min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10"
+              ? "h-[calc(100dvh-3.5rem)] min-w-0 flex-1 overflow-hidden lg:h-dvh"
+              : "min-w-0 w-full flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10"
           }
         >
           {children}

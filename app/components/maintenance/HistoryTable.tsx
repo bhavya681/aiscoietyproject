@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ArrowUpRight, FileText } from "lucide-react";
 
 import StatusBadge from "@/app/components/ui/StatusBadge";
 import {
@@ -28,11 +27,10 @@ export default function HistoryTable({ history }: HistoryTableProps) {
   if (!history.length) {
     return (
       <div className="rounded-2xl border border-dashed border-border bg-card/60 p-12 text-center">
-        <FileText className="mx-auto h-8 w-8 text-muted-foreground/60" />
-        <p className="mt-3 text-sm font-medium text-foreground">
+        <p className="text-sm font-medium text-foreground">
           No transaction records found
         </p>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">
           Your maintenance records and payment receipts will appear here once an
           invoice is raised.
         </p>
@@ -103,10 +101,9 @@ export default function HistoryTable({ history }: HistoryTableProps) {
                   <td className="px-5 py-3.5 text-right">
                     <Link
                       href={`/maintenance/invoice/${record._id}`}
-                      className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                      className="text-xs font-medium text-primary hover:underline"
                     >
-                      Open
-                      <ArrowUpRight className="h-3 w-3" />
+                      View invoice
                     </Link>
                   </td>
                 </tr>
@@ -152,10 +149,9 @@ export default function HistoryTable({ history }: HistoryTableProps) {
 
               <Link
                 href={`/maintenance/invoice/${record._id}`}
-                className="inline-flex h-8 items-center gap-1 rounded-lg border border-border bg-card px-2.5 text-[11px] font-medium text-foreground"
+                className="inline-flex h-8 items-center rounded-lg border border-border bg-card px-2.5 text-[11px] font-medium text-foreground"
               >
                 Invoice
-                <ArrowUpRight className="h-3 w-3" />
               </Link>
             </div>
           </div>

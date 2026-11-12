@@ -2,18 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  AlertCircle,
-  AlertTriangle,
-  CalendarDays,
-  CheckCircle2,
-  KeyRound,
-  Mail,
-  MapPin,
-  Phone,
-  Shield,
-  User,
-} from "lucide-react";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 import AppShell from "../components/layout/AppShell";
 import PageHeader from "@/app/components/ui/PageHeader";
@@ -167,7 +156,7 @@ export default function ProfilePage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-5xl space-y-7">
+      <div className="w-full space-y-6 lg:space-y-8">
         <PageHeader
           eyebrow="Account"
           title="Profile and settings"
@@ -195,7 +184,7 @@ export default function ProfilePage() {
             <div className="mt-2 h-3 w-56 animate-pulse rounded bg-muted" />
           </div>
         ) : (
-          <div className="grid items-start gap-5 lg:grid-cols-[280px_1fr]">
+          <div className="grid items-start gap-5 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
             <aside className="space-y-4 lg:sticky lg:top-24">
               <section className="rounded-2xl border border-border/80 bg-card p-5 shadow-card">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-base font-semibold text-primary-foreground">
@@ -214,15 +203,13 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="mt-5 space-y-3 border-t border-border/70 pt-4 text-xs">
-                  <InfoRow icon={Mail} label="Email" value={profile?.email ?? "—"} />
+                  <InfoRow label="Email" value={profile?.email ?? "—"} />
                   <InfoRow
-                    icon={Shield}
                     label="Role"
                     value={profile?.role ?? "resident"}
                     capitalize
                   />
                   <InfoRow
-                    icon={CalendarDays}
                     label="Member since"
                     value={formatDate(profile?.createdAt)}
                   />
@@ -234,10 +221,9 @@ export default function ProfilePage() {
               </section>
 
               <section className="rounded-2xl border border-border/80 bg-muted/35 p-4">
-                <div className="flex items-center gap-2 text-xs font-medium text-foreground">
-                  <KeyRound className="h-3.5 w-3.5 text-primary" />
+                <h3 className="text-xs font-medium text-foreground">
                   Account security
-                </div>
+                </h3>
                 <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
                   Use a unique password and update it if you notice unusual
                   activity.
@@ -245,23 +231,18 @@ export default function ProfilePage() {
               </section>
             </aside>
 
-            <div className="space-y-5">
+            <div className="grid items-start gap-5 2xl:grid-cols-2">
               <form
                 onSubmit={handleSaveProfile}
                 className="rounded-2xl border border-border/80 bg-card p-5 shadow-card sm:p-6"
               >
-                <div className="flex items-start gap-2.5">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-accent text-accent-foreground">
-                    <User className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <h2 className="text-sm font-medium text-foreground">
-                      Contact details
-                    </h2>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      Used by the society office to reach you.
-                    </p>
-                  </div>
+                <div>
+                  <h2 className="text-sm font-medium text-foreground">
+                    Contact details
+                  </h2>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Used by the society office to reach you.
+                  </p>
                 </div>
 
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -271,7 +252,6 @@ export default function ProfilePage() {
                     onChange={(value) =>
                       setForm((previous) => ({ ...previous, name: value }))
                     }
-                    icon={User}
                   />
                   <InputField
                     label="Phone number"
@@ -279,7 +259,6 @@ export default function ProfilePage() {
                     onChange={(value) =>
                       setForm((previous) => ({ ...previous, phone: value }))
                     }
-                    icon={Phone}
                   />
                 </div>
 
@@ -288,7 +267,6 @@ export default function ProfilePage() {
                     Flat / house address
                   </span>
                   <span className="relative block">
-                    <MapPin className="pointer-events-none absolute left-3.5 top-3.5 h-4 w-4 text-muted-foreground" />
                     <textarea
                       value={form.address}
                       onChange={(event) =>
@@ -299,7 +277,7 @@ export default function ProfilePage() {
                       }
                       required
                       rows={3}
-                      className="min-h-[88px] w-full resize-none rounded-[10px] border border-input bg-card py-3 pl-10 pr-3.5 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-4 focus:ring-primary/10"
+                      className="min-h-[88px] w-full resize-none rounded-[10px] border border-input bg-card px-3.5 py-3 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-4 focus:ring-primary/10"
                     />
                   </span>
                 </label>
@@ -319,18 +297,13 @@ export default function ProfilePage() {
                 onSubmit={handleChangePassword}
                 className="rounded-2xl border border-border/80 bg-card p-5 shadow-card sm:p-6"
               >
-                <div className="flex items-start gap-2.5">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-muted text-muted-foreground">
-                    <KeyRound className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <h2 className="text-sm font-medium text-foreground">
-                      Password
-                    </h2>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      Choose a strong password you do not use elsewhere.
-                    </p>
-                  </div>
+                <div>
+                  <h2 className="text-sm font-medium text-foreground">
+                    Password
+                  </h2>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Choose a strong password you do not use elsewhere.
+                  </p>
                 </div>
 
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -373,24 +346,19 @@ export default function ProfilePage() {
                 </div>
               </form>
 
-              <section className="rounded-2xl border border-destructive/25 bg-destructive/[0.035] p-5 sm:p-6">
-                <div className="flex items-start gap-2.5">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-destructive/10 text-destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <h2 className="text-sm font-medium text-destructive">
-                      Delete account
-                    </h2>
-                    <p className="mt-1 max-w-xl text-xs leading-relaxed text-muted-foreground">
-                      This permanently removes your profile and all associated
-                      maintenance, payment, and invoice records. This action
-                      cannot be undone.
-                    </p>
-                  </div>
+              <section className="rounded-2xl border border-destructive/25 bg-destructive/[0.035] p-5 sm:p-6 2xl:col-span-2">
+                <div>
+                  <h2 className="text-sm font-medium text-destructive">
+                    Delete account
+                  </h2>
+                  <p className="mt-1 max-w-xl text-xs leading-relaxed text-muted-foreground">
+                    This permanently removes your profile and all associated
+                    maintenance, payment, and invoice records. This action
+                    cannot be undone.
+                  </p>
                 </div>
 
-                <div className="mt-4 pl-[46px]">
+                <div className="mt-4">
                   <button
                     type="button"
                     onClick={handleDeleteAccount}
@@ -410,29 +378,24 @@ export default function ProfilePage() {
 }
 
 function InfoRow({
-  icon: Icon,
   label,
   value,
   capitalize,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
   capitalize?: boolean;
 }) {
   return (
-    <div className="flex items-start gap-2.5">
-      <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-      <div className="min-w-0">
-        <p className="text-[10px] font-medium text-muted-foreground">{label}</p>
-        <p
-          className={`mt-0.5 break-all text-[11px] font-medium text-foreground ${
-            capitalize ? "capitalize" : ""
-          }`}
-        >
-          {value}
-        </p>
-      </div>
+    <div className="min-w-0">
+      <p className="text-[10px] font-medium text-muted-foreground">{label}</p>
+      <p
+        className={`mt-0.5 break-all text-[11px] font-medium text-foreground ${
+          capitalize ? "capitalize" : ""
+        }`}
+      >
+        {value}
+      </p>
     </div>
   );
 }
@@ -442,33 +405,24 @@ function InputField({
   type = "text",
   value,
   onChange,
-  icon: Icon,
 }: {
   label: string;
   type?: string;
   value: string;
   onChange: (value: string) => void;
-  icon?: React.ComponentType<{ className?: string }>;
 }) {
   return (
     <label className="block">
       <span className="mb-1.5 block text-xs font-medium text-foreground">
         {label}
       </span>
-      <span className="relative block">
-        {Icon && (
-          <Icon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        )}
-        <input
-          type={type}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          required
-          className={`h-10 w-full rounded-[10px] border border-input bg-card pr-3.5 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-4 focus:ring-primary/10 ${
-            Icon ? "pl-10" : "pl-3.5"
-          }`}
-        />
-      </span>
+      <input
+        type={type}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        required
+        className="h-10 w-full rounded-[10px] border border-input bg-card px-3.5 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-4 focus:ring-primary/10"
+      />
     </label>
   );
 }

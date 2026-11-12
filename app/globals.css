@@ -126,6 +126,8 @@
 
   html {
     color-scheme: light dark;
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
   }
 
   body {
@@ -154,6 +156,10 @@
 
   /* Respect reduced motion */
   @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
     * {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
@@ -205,6 +211,15 @@
       0 16px 40px -28px rgba(0, 0, 0, 0.8);
   }
 
+  /* Soft ambient wash for conversation surfaces. */
+  .bg-chat-glow {
+    background-image: radial-gradient(
+      ellipse 80% 55% at 50% -10%,
+      color-mix(in srgb, var(--primary) 14%, transparent),
+      transparent 72%
+    );
+  }
+
   /* Hairline grid for branded panels and auth screens. */
   .bg-app-grid {
     background-image:
@@ -219,6 +234,99 @@
       transparent 1px
     );
     background-size: 20px 20px;
+  }
+
+  /* Entrance and ambient motion used on the marketing page. */
+  .animate-fade-up {
+    animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.45s ease-out both;
+  }
+
+  .animate-fade-down {
+    animation: fade-down 0.35s ease-out both;
+  }
+
+  .animate-float {
+    animation: float 9s ease-in-out infinite;
+  }
+
+  .animate-float-delayed {
+    animation: float 12s ease-in-out infinite;
+    animation-delay: -4s;
+  }
+
+  .animate-gradient-pan {
+    background-size: 200% 200%;
+    animation: gradient-pan 9s ease infinite;
+  }
+
+  /* Progressive reveal driven by IntersectionObserver in app/page.tsx. */
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+  }
+
+  [data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(-16px) translateX(8px);
+  }
+}
+
+@keyframes gradient-pan {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
   }
 }
 

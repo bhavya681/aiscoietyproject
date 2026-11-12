@@ -67,7 +67,7 @@ export default function Sidebar({ role, user, onCollapse }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "sticky top-0 hidden h-dvh shrink-0 flex-col border-r border-border/70 bg-card/35 transition-[width] duration-200 md:flex",
+        "sticky top-0 hidden h-dvh shrink-0 flex-col border-r border-border/70 bg-card/35 transition-[width] duration-200 lg:flex",
         collapsed ? "w-[72px]" : "w-[252px]"
       )}
     >
@@ -193,16 +193,7 @@ function NavGroup({
                   active ? "text-primary" : "text-muted-foreground"
                 )}
               />
-              {!collapsed && (
-                <span className="flex flex-1 items-center justify-between gap-2">
-                  <span>{item.name}</span>
-                  {item.href === "/ai" && (
-                    <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary">
-                      New
-                    </span>
-                  )}
-                </span>
-              )}
+              {!collapsed && <span className="flex-1">{item.name}</span>}
             </Link>
           );
         })}
@@ -338,7 +329,7 @@ export function MobileSidebar({
     <>
       <div
         className={cn(
-          "fixed inset-0 z-40 bg-foreground/25 backdrop-blur-[2px] transition-opacity duration-200 md:hidden",
+          "fixed inset-0 z-40 bg-foreground/25 backdrop-blur-[2px] transition-opacity duration-200 lg:hidden",
           open ? "opacity-100" : "pointer-events-none opacity-0"
         )}
         onClick={onClose}
@@ -347,7 +338,7 @@ export function MobileSidebar({
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[286px] flex-col border-r border-border bg-card shadow-2xl transition-transform duration-200 ease-out md:hidden",
+          "fixed inset-y-0 left-0 z-50 flex w-[286px] flex-col border-r border-border bg-card shadow-2xl transition-transform duration-200 ease-out lg:hidden",
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -411,11 +402,6 @@ export function MobileSidebar({
                         )}
                       />
                       <span className="flex-1">{item.name}</span>
-                      {item.href === "/ai" && (
-                        <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary">
-                          New
-                        </span>
-                      )}
                     </Link>
                   );
                 })}

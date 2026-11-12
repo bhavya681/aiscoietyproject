@@ -1,11 +1,4 @@
 import Link from "next/link";
-import {
-  ArrowUpRight,
-  CalendarDays,
-  CheckCircle2,
-  Clock3,
-  Wallet,
-} from "lucide-react";
 
 import { formatCurrency } from "@/app/lib/types";
 
@@ -59,10 +52,9 @@ export default function MaintenanceCard({
         {hasPending && (
           <Link
             href="/maintenance"
-            className="inline-flex h-9 items-center gap-2 rounded-[9px] bg-primary px-3.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex h-9 items-center rounded-[9px] bg-primary px-3.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             Pay now
-            <ArrowUpRight className="h-3.5 w-3.5" />
           </Link>
         )}
       </div>
@@ -71,8 +63,7 @@ export default function MaintenanceCard({
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="rounded-xl bg-muted/55 p-3.5">
-          <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
-            <Wallet className="h-3.5 w-3.5" />
+          <span className="block text-[11px] font-medium text-muted-foreground">
             Monthly base rate
           </span>
           <p className="mt-1.5 text-lg font-semibold tracking-tight text-foreground tabular-nums">
@@ -84,8 +75,7 @@ export default function MaintenanceCard({
         </div>
 
         <div className="rounded-xl bg-muted/55 p-3.5">
-          <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
-            <CalendarDays className="h-3.5 w-3.5" />
+          <span className="block text-[11px] font-medium text-muted-foreground">
             Payment deadline
           </span>
           <p className="mt-1.5 text-lg font-semibold tracking-tight text-foreground">
@@ -97,19 +87,11 @@ export default function MaintenanceCard({
         </div>
       </div>
 
-      <div className="mt-auto flex items-center gap-2 pt-4 text-[11px] text-muted-foreground">
-        {hasPending ? (
-          <>
-            <Clock3 className="h-3.5 w-3.5 text-amber" />
-            Paying before the deadline keeps your account in good standing.
-          </>
-        ) : (
-          <>
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald" />
-            Your maintenance account is fully settled.
-          </>
-        )}
-      </div>
+      <p className="mt-auto pt-4 text-[11px] text-muted-foreground">
+        {hasPending
+          ? "Paying before the deadline keeps your account in good standing."
+          : "Your maintenance account is fully settled."}
+      </p>
     </section>
   );
 }

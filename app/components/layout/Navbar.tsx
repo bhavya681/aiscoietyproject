@@ -36,7 +36,7 @@ export default function Navbar({ user }: NavbarProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-border/70 bg-background/85 px-4 backdrop-blur-xl md:hidden">
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-border/70 bg-background/85 px-4 backdrop-blur-xl lg:hidden">
         <div className="flex min-w-0 items-center gap-2.5">
           <button
             type="button"
@@ -44,20 +44,17 @@ export default function Navbar({ user }: NavbarProps) {
             aria-label="Open navigation"
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-border/80 bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
-            <Menu className="h-4.5 w-4.5" />
+            <Menu className="h-4 w-4" />
           </button>
 
-<Link
-              href="/dashboard"
-              className="flex min-w-0 items-center gap-2"
-            >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] border border-border/70 bg-card">
-                <Building2 className="h-5 w-5 text-primary" />
-              </span>
-              <span className="truncate text-sm font-semibold tracking-tight text-foreground">
-                {getPageLabel(pathname)}
-              </span>
-            </Link>
+          <Link href="/dashboard" className="flex min-w-0 items-center gap-2">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] border border-border/70 bg-card">
+              <Building2 className="h-4 w-4 text-primary" />
+            </span>
+            <span className="truncate text-sm font-semibold tracking-tight text-foreground">
+              {getPageLabel(pathname)}
+            </span>
+          </Link>
         </div>
 
         <ThemeToggle />

@@ -2,18 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import {
-  AlertCircle,
-  ArrowUpRight,
-  Banknote,
-  CheckCircle2,
-  FileText,
-  Landmark,
-  ShieldCheck,
-  Smartphone,
-  Wallet,
-  X,
-} from "lucide-react";
+import { AlertCircle, CheckCircle2, X } from "lucide-react";
 
 import AppShell from "../components/layout/AppShell";
 import PageHeader from "@/app/components/ui/PageHeader";
@@ -32,25 +21,21 @@ const PAYMENT_METHODS = [
     value: "upi",
     label: "UPI or QR code",
     desc: "Google Pay, PhonePe, Paytm",
-    icon: Smartphone,
   },
   {
     value: "bank_transfer",
     label: "NEFT or RTGS",
     desc: "Direct transfer to the society account",
-    icon: Landmark,
   },
   {
     value: "cash",
     label: "Society office",
     desc: "Pay in person with a manual voucher",
-    icon: Banknote,
   },
   {
     value: "other",
     label: "Cheque or demand draft",
     desc: "Submit a cheque at the society office",
-    icon: FileText,
   },
 ] as const;
 
@@ -152,7 +137,7 @@ export default function MaintenancePage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-6xl space-y-7">
+      <div className="w-full space-y-6 lg:space-y-8">
         <PageHeader
           eyebrow="Billing and payments"
           title="Maintenance"
@@ -160,9 +145,8 @@ export default function MaintenancePage() {
           action={
             <Link
               href="/maintenance/history"
-              className="inline-flex h-10 items-center gap-2 rounded-[10px] border border-border bg-card px-4 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+              className="inline-flex h-10 items-center justify-center rounded-[10px] border border-border bg-card px-4 text-xs font-medium text-foreground transition-colors hover:bg-muted"
             >
-              <FileText className="h-3.5 w-3.5 text-muted-foreground" />
               Payment history
             </Link>
           }
@@ -182,8 +166,8 @@ export default function MaintenancePage() {
           </div>
         )}
 
-        <div className="grid items-start gap-5 lg:grid-cols-12">
-          <div className="space-y-5 lg:col-span-7">
+        <div className="grid items-start gap-5 xl:grid-cols-12">
+          <div className="space-y-5 xl:col-span-7">
             <section className="rounded-2xl border border-border/80 bg-card p-5 shadow-card sm:p-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
@@ -217,33 +201,27 @@ export default function MaintenancePage() {
 
               <div className="my-5 h-px bg-border/70" />
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="flex items-center gap-3 rounded-xl border border-border/70 px-3.5 py-3">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                    <Wallet className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <p className="text-[11px] text-muted-foreground">Next due date</p>
-                    <p className="mt-0.5 text-[13px] font-medium text-foreground">
-                      {data?.nextDueDate
-                        ? formatDate(data.nextDueDate)
-                        : "No pending due date"}
-                    </p>
-                  </div>
+              <dl className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-border/70 px-3.5 py-3">
+                  <dt className="text-[11px] text-muted-foreground">
+                    Next due date
+                  </dt>
+                  <dd className="mt-0.5 text-[13px] font-medium text-foreground">
+                    {data?.nextDueDate
+                      ? formatDate(data.nextDueDate)
+                      : "No pending due date"}
+                  </dd>
                 </div>
 
-                <div className="flex items-center gap-3 rounded-xl border border-border/70 px-3.5 py-3">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald/10 text-emerald">
-                    <ShieldCheck className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <p className="text-[11px] text-muted-foreground">Account standing</p>
-                    <p className="mt-0.5 text-[13px] font-medium text-foreground">
-                      Audited resident profile
-                    </p>
-                  </div>
+                <div className="rounded-xl border border-border/70 px-3.5 py-3">
+                  <dt className="text-[11px] text-muted-foreground">
+                    Account standing
+                  </dt>
+                  <dd className="mt-0.5 text-[13px] font-medium text-foreground">
+                    {isPending ? "Payment required" : "In good standing"}
+                  </dd>
                 </div>
-              </div>
+              </dl>
             </section>
 
             <section className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-card">
@@ -294,10 +272,10 @@ export default function MaintenancePage() {
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2.5">
+                      <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2.5">
                         <Link
                           href={`/maintenance/invoice/${record._id}`}
-                          className="inline-flex h-9 items-center rounded-[9px] border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+                          className="inline-flex h-9 items-center justify-center rounded-[9px] border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted"
                         >
                           View invoice
                         </Link>
@@ -311,7 +289,7 @@ export default function MaintenancePage() {
                             })
                           }
                           disabled={paying}
-                          className="inline-flex h-9 items-center rounded-[9px] bg-primary px-3.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+                          className="inline-flex h-9 items-center justify-center rounded-[9px] bg-primary px-3.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
                         >
                           Pay {formatCurrency(record.pendingAmount)}
                         </button>
@@ -323,7 +301,7 @@ export default function MaintenancePage() {
             </section>
           </div>
 
-          <div className="space-y-5 lg:col-span-5">
+          <div className="space-y-5 xl:col-span-5">
             <section className="rounded-2xl border border-border/80 bg-card p-5 shadow-card sm:p-6">
               <h2 className="text-sm font-medium text-foreground">
                 Payment method
@@ -334,7 +312,6 @@ export default function MaintenancePage() {
 
               <div className="mt-4 space-y-2">
                 {PAYMENT_METHODS.map((option) => {
-                  const Icon = option.icon;
                   const active = method === option.value;
 
                   return (
@@ -356,14 +333,12 @@ export default function MaintenancePage() {
                       />
 
                       <span
-                        className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                        className={`mt-1.5 h-3.5 w-3.5 shrink-0 rounded-full border ${
                           active
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-muted-foreground"
+                            ? "border-primary bg-primary ring-2 ring-primary/15 ring-inset"
+                            : "border-input"
                         }`}
-                      >
-                        <Icon className="h-4 w-4" />
-                      </span>
+                      />
 
                       <span className="min-w-0 flex-1">
                         <span className="block text-xs font-medium text-foreground">
@@ -373,14 +348,6 @@ export default function MaintenancePage() {
                           {option.desc}
                         </span>
                       </span>
-
-                      <span
-                        className={`mt-2 h-3.5 w-3.5 shrink-0 rounded-full border ${
-                          active
-                            ? "border-primary bg-primary ring-2 ring-primary/15 ring-inset"
-                            : "border-input"
-                        }`}
-                      />
                     </label>
                   );
                 })}
@@ -396,7 +363,7 @@ export default function MaintenancePage() {
                     key={item}
                     className="flex items-center gap-2 text-[11px] text-muted-foreground"
                   >
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald" />
+                    <span className="h-1 w-1 rounded-full bg-muted-foreground/60" />
                     {item}
                   </p>
                 ))}
@@ -404,12 +371,9 @@ export default function MaintenancePage() {
             </section>
 
             <section className="rounded-2xl border border-border/80 bg-muted/35 p-5">
-              <div className="flex items-center gap-2">
-                <Landmark className="h-4 w-4 text-muted-foreground" />
-                <h2 className="text-xs font-medium text-foreground">
-                  Direct transfer details
-                </h2>
-              </div>
+              <h2 className="text-xs font-medium text-foreground">
+                Direct transfer details
+              </h2>
 
               <p className="mt-3 text-[13px] font-medium text-foreground">
                 Palm Grove Co-op Housing Society Ltd.
@@ -449,13 +413,9 @@ export default function MaintenancePage() {
               <X className="h-4 w-4" />
             </button>
 
-            <span className="flex h-10 w-10 items-center justify-center rounded-[11px] bg-accent text-accent-foreground">
-              <Wallet className="h-4.5 w-4.5" />
-            </span>
-
             <h2
               id="payment-dialog-title"
-              className="mt-4 text-lg font-semibold tracking-tight text-foreground"
+              className="text-lg font-semibold tracking-tight text-foreground"
             >
               Confirm payment
             </h2>
@@ -498,10 +458,9 @@ export default function MaintenancePage() {
                 type="button"
                 onClick={confirmPayment}
                 disabled={paying}
-                className="flex h-10 flex-[1.4] items-center justify-center gap-2 rounded-[10px] bg-primary text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+                className="flex h-10 flex-[1.4] items-center justify-center rounded-[10px] bg-primary text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
               >
                 {paying ? "Recording payment..." : "Confirm payment"}
-                {!paying && <ArrowUpRight className="h-3.5 w-3.5" />}
               </button>
             </div>
           </div>

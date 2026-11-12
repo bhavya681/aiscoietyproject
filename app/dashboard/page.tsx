@@ -9,10 +9,6 @@ import {
   CheckCircle2,
   ChevronRight,
   History,
-  LayoutDashboard,
-  Receipt,
-  Sparkles,
-  Wrench,
 } from "lucide-react";
 
 import AppShell from "../components/layout/AppShell";
@@ -87,7 +83,7 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-6xl space-y-7">
+      <div className="w-full space-y-6 lg:space-y-8">
         <PageHeader
           eyebrow="Resident overview"
           title={`Welcome back, ${firstName}`}
@@ -119,57 +115,49 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <section className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-card">
-          <div className="grid divide-y divide-border/70 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
-            <Metric
-              label="Pending maintenance"
-              value={formatCurrency(pending?.totalPending ?? 0)}
-              detail={
-                pending?.nextDueDate
-                  ? `Next due ${formatDate(pending.nextDueDate)}`
-                  : "No due date recorded"
-              }
-              icon={Wrench}
-              tone={hasPending ? "warning" : "success"}
-              loading={loading}
-            />
-            <Metric
-              label="Monthly base rate"
-              value={formatCurrency(pending?.monthlyAmount ?? 0)}
-              detail="Residential maintenance tariff"
-              icon={LayoutDashboard}
-              loading={loading}
-            />
-            <Metric
-              label="Settled to date"
-              value={formatCurrency(totalPaid)}
-              detail={`${paidRecords.length} verified payment${
-                paidRecords.length === 1 ? "" : "s"
-              }`}
-              icon={History}
-              tone="success"
-              loading={loading}
-            />
-            <Metric
-              label="Latest receipt"
-              value={
-                lastPayment ? formatCurrency(lastPayment.monthlyAmount) : "—"
-              }
-              detail={
-                lastPayment
-                  ? `${formatDate(
-                      lastPayment.paidAt ?? lastPayment.dueDate
-                    )} · ${lastPayment.paymentMethod?.replace("_", " ") ?? "UPI"}`
-                  : "No receipts issued yet"
-              }
-              icon={Receipt}
-              loading={loading}
-            />
-          </div>
+        <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Metric
+            label="Pending maintenance"
+            value={formatCurrency(pending?.totalPending ?? 0)}
+            detail={
+              pending?.nextDueDate
+                ? `Next due ${formatDate(pending.nextDueDate)}`
+                : "No due date recorded"
+            }
+            tone={hasPending ? "warning" : "success"}
+            loading={loading}
+          />
+          <Metric
+            label="Monthly base rate"
+            value={formatCurrency(pending?.monthlyAmount ?? 0)}
+            detail="Residential maintenance tariff"
+            loading={loading}
+          />
+          <Metric
+            label="Settled to date"
+            value={formatCurrency(totalPaid)}
+            detail={`${paidRecords.length} verified payment${
+              paidRecords.length === 1 ? "" : "s"
+            }`}
+            tone="success"
+            loading={loading}
+          />
+          <Metric
+            label="Latest receipt"
+            value={lastPayment ? formatCurrency(lastPayment.monthlyAmount) : "—"}
+            detail={
+              lastPayment
+                ? `${formatDate(
+                    lastPayment.paidAt ?? lastPayment.dueDate
+                  )} · ${lastPayment.paymentMethod?.replace("_", " ") ?? "UPI"}`
+                : "No receipts issued yet"
+            }
+            loading={loading}
+          />
         </section>
 
-        <div className="grid gap-5 lg:grid-cols-12">
-          <div className="lg:col-span-7">
+        <div className="grid gap-5 xl:grid-cols-12">
+          <div className="xl:col-span-7">
             <MaintenanceCard
               pendingAmount={pending?.totalPending ?? 0}
               monthlyAmount={pending?.monthlyAmount ?? 0}
@@ -181,51 +169,46 @@ export default function DashboardPage() {
             />
           </div>
 
-          <section className="relative overflow-hidden rounded-2xl bg-[#101713] p-6 text-[#f3f7f4] shadow-card lg:col-span-5">
-            <div className="pointer-events-none absolute inset-0 bg-app-grid text-white/[0.055]" />
-            <div className="relative flex h-full flex-col">
-              <div className="flex items-start justify-between gap-4">
-                <span className="flex h-10 w-10 items-center justify-center rounded-[11px] bg-[#79c9a6] text-[#08130f]">
-                  <Sparkles className="h-4.5 w-4.5" />
-                </span>
-                <span className="rounded-md border border-white/10 bg-white/[0.06] px-2 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-[#a9b7ae]">
-                  Resident assistant
-                </span>
-              </div>
+          <section className="relative flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-card p-6 shadow-card xl:col-span-5">
+            <div className="flex items-start justify-between gap-4">
+              <span className="rounded-md bg-accent px-2 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-accent-foreground">
+                Resident assistant
+              </span>
+            </div>
 
-              <h2 className="mt-6 max-w-sm text-2xl font-semibold leading-tight tracking-[-0.03em]">
-                Ask anything about your society.
-              </h2>
-              <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-[#aebbb3]">
-                Check balances, understand a charge, or find the right next step
-                without digging through statements.
-              </p>
+            <h2 className="mt-5 max-w-sm text-2xl font-semibold leading-tight tracking-[-0.03em] text-foreground">
+              Ask anything about your society.
+            </h2>
+            <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-muted-foreground">
+              Check balances, understand a charge, or find the right next step
+              without digging through statements.
+            </p>
 
-              <div className="mt-5 space-y-2">
-                {[
-                  "What is my pending balance?",
-                  "Show me my latest receipt.",
-                  "How is maintenance calculated?",
-                ].map((prompt) => (
-                  <div
-                    key={prompt}
-                    className="flex items-center justify-between rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-[11px] text-[#c5d1c9]"
-                  >
-                    <span>{prompt}</span>
-                    <ChevronRight className="h-3 w-3 text-[#7f8e85]" />
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-auto pt-6">
+            <div className="mt-5 space-y-2">
+              {[
+                "What is my pending balance?",
+                "Show me my latest receipt.",
+                "How is maintenance calculated?",
+              ].map((prompt) => (
                 <Link
+                  key={prompt}
                   href="/ai"
-                  className="flex h-10 items-center justify-between rounded-[10px] bg-[#f3f7f4] px-4 text-xs font-medium text-[#101713] transition-colors hover:bg-white"
+                  className="flex items-center justify-between rounded-lg border border-border/70 px-3 py-2 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
-                  Open assistant
-                  <ArrowRight className="h-4 w-4" />
+                  <span>{prompt}</span>
+                  <ChevronRight className="h-3 w-3 shrink-0" />
                 </Link>
-              </div>
+              ))}
+            </div>
+
+            <div className="mt-auto pt-6">
+              <Link
+                href="/ai"
+                className="flex h-10 items-center justify-between rounded-[10px] bg-primary px-4 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                Open assistant
+                <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
           </section>
         </div>
@@ -271,43 +254,27 @@ export default function DashboardPage() {
                     key={record._id}
                     className="flex flex-col gap-3 px-5 py-4 transition-colors hover:bg-muted/25 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <div className="flex items-center gap-3.5">
-                      <span
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] ${
-                          paid
-                            ? "bg-emerald/10 text-emerald"
-                            : "bg-amber/10 text-amber"
-                        }`}
-                      >
-                        {paid ? (
-                          <CheckCircle2 className="h-4 w-4" />
-                        ) : (
-                          <Wrench className="h-4 w-4" />
-                        )}
-                      </span>
-
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-[13px] font-medium text-foreground">
-                            Maintenance {paid ? "payment" : "due"}
-                          </p>
-                          <StatusBadge
-                            variant={paid ? "success" : "warning"}
-                            size="sm"
-                          >
-                            {record.status}
-                          </StatusBadge>
-                        </div>
-                        <p className="mt-0.5 text-[11px] text-muted-foreground">
-                          Due {formatDate(record.dueDate)}
-                          {record.paymentMethod
-                            ? ` · ${record.paymentMethod.replace("_", " ")}`
-                            : " · Awaiting payment"}
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-[13px] font-medium text-foreground">
+                          Maintenance {paid ? "payment" : "due"}
                         </p>
+                        <StatusBadge
+                          variant={paid ? "success" : "warning"}
+                          size="sm"
+                        >
+                          {record.status}
+                        </StatusBadge>
                       </div>
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        Due {formatDate(record.dueDate)}
+                        {record.paymentMethod
+                          ? ` · ${record.paymentMethod.replace("_", " ")}`
+                          : " · Awaiting payment"}
+                      </p>
                     </div>
 
-                    <div className="flex items-center justify-between gap-5 pl-[50px] sm:justify-end sm:pl-0">
+                    <div className="flex items-center justify-between gap-5 sm:justify-end">
                       <p className="text-sm font-medium text-foreground tabular-nums">
                         {formatCurrency(
                           paid ? record.monthlyAmount : record.pendingAmount
@@ -336,39 +303,31 @@ function Metric({
   label,
   value,
   detail,
-  icon: Icon,
   tone = "default",
   loading,
 }: {
   label: string;
   value: string;
   detail: string;
-  icon: React.ComponentType<{ className?: string }>;
   tone?: "default" | "success" | "warning";
   loading?: boolean;
 }) {
-  const iconClasses = {
-    default: "bg-muted text-muted-foreground",
-    success: "bg-emerald/10 text-emerald",
-    warning: "bg-amber/10 text-amber",
+  const dotClasses = {
+    default: "bg-muted-foreground/40",
+    success: "bg-emerald",
+    warning: "bg-amber",
   }[tone];
 
   return (
-    <div className="p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-muted-foreground">{label}</p>
-          <p className="mt-2 truncate text-[23px] font-semibold tracking-[-0.03em] text-foreground tabular-nums">
-            {loading ? "—" : value}
-          </p>
-        </div>
-        <span
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] ${iconClasses}`}
-        >
-          <Icon className="h-4 w-4" />
-        </span>
+    <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-card">
+      <div className="flex items-center gap-2">
+        <span className={`h-1.5 w-1.5 rounded-full ${dotClasses}`} />
+        <p className="text-xs font-medium text-muted-foreground">{label}</p>
       </div>
-      <p className="mt-3 truncate text-[11px] text-muted-foreground">
+      <p className="mt-2.5 truncate text-[23px] font-semibold tracking-[-0.03em] text-foreground tabular-nums">
+        {loading ? "—" : value}
+      </p>
+      <p className="mt-1.5 truncate text-[11px] text-muted-foreground">
         {loading ? "Loading account details..." : detail}
       </p>
     </div>
