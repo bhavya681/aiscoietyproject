@@ -1,7 +1,8 @@
 import type { NextRequest } from "next/server";
 
 import { apiError, apiSuccess } from "@/app/lib/apiResponse";
-import { getAuthenticatedUser, isValidObjectId } from "@/app/lib/auth";
+import { isValidObjectId } from "@/app/lib/auth";
+import { canManageSociety, getSocietyContext } from "@/app/lib/society";
 import { connectDB } from "@/app/lib/mongodb";
 import Invoice from "@/app/models/Invoice";
 import Maintenance from "@/app/models/Maintenance";
@@ -11,12 +12,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = getAuthenticatedUser(request);
+    const societyResult = await getSocietyContext(request);
 
-    if (!user) {
-      return apiError("Authentication required.", 401);
+    if (!societyResult.ok) {
+      return apiError(societyResult.message, societyResult.status);
     }
 
+    const { context } = societyResult;
     const { id } = await params;
 
     if (!isValidObjectId(id)) {
@@ -25,9 +27,13 @@ export async function GET(
 
     await connectDB();
 
-    // Residents may only read their own records; admins may read any record.
-    const ownerFilter =
-      user.role === "admin" ? { _id: id } : { _id: id, userId: user.userId };
+    // Residents may only read their own records inside their active society;
+    // society admins may read any record in that society.
+    const ownerFilter: Record<string, unknown> = canManageSociety(
+      context.membershipRole
+    )
+      ? { _id: id, societyId: context.societyId }
+      : { _id: id, userId: context.auth.userId, societyId: context.societyId };
 
     const maintenance = await Maintenance.findOne(ownerFilter).lean();
 
@@ -39,7 +45,9 @@ export async function GET(
     // created before the society issues the invoice for that cycle.
     const invoice = await Invoice.findOne({
       maintenanceId: maintenance._id,
-      ...(user.role === "admin" ? {} : { userId: user.userId }),
+      ...(canManageSociety(context.membershipRole)
+        ? {}
+        : { userId: context.auth.userId }),
     }).lean();
 
     return apiSuccess({ invoice, maintenance }, "Invoice fetched.", 200);

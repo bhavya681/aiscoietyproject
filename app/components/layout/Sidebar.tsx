@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 import { apiFetch } from "@/app/lib/api";
-import type { Profile, Role } from "@/app/lib/types";
+import type { Profile, Role, SocietySummary } from "@/app/lib/types";
 import ThemeToggle from "@/app/components/ui/ThemeToggle";
 import { cn } from "@/app/lib/utils";
 
@@ -35,6 +35,10 @@ const SUPPORT_NAVIGATION = [
 
 const ADMIN_NAVIGATION = [
   { name: "Admin panel", href: "/admin", icon: Shield },
+] as const;
+
+const SOCIETY_NAVIGATION = [
+  { name: "Your societies", href: "/societies", icon: Building2 },
 ] as const;
 
 function isActive(pathname: string, href: string) {
@@ -112,6 +116,8 @@ export default function Sidebar({ role, user, onCollapse }: SidebarProps) {
         </button>
       </div>
 
+      <SocietySwitcher user={user} collapsed={collapsed} />
+
       <nav className="flex-1 overflow-y-auto px-2.5 py-4">
         <NavGroup
           label="Workspace"
@@ -124,6 +130,15 @@ export default function Sidebar({ role, user, onCollapse }: SidebarProps) {
           <NavGroup
             label="Your account"
             items={SUPPORT_NAVIGATION}
+            pathname={pathname}
+            collapsed={collapsed}
+          />
+        </div>
+
+        <div className="mt-5">
+          <NavGroup
+            label="Society"
+            items={SOCIETY_NAVIGATION}
             pathname={pathname}
             collapsed={collapsed}
           />
@@ -143,6 +158,97 @@ export default function Sidebar({ role, user, onCollapse }: SidebarProps) {
 
       <SidebarAccount user={user} collapsed={collapsed} />
     </aside>
+  );
+}
+
+function SocietySwitcher({
+  user,
+  collapsed,
+}: {
+  user?: Profile | null;
+  collapsed: boolean;
+}) {
+  const [switching, setSwitching] = useState(false);
+  const societies: SocietySummary[] = user?.societies ?? [];
+  const activeSocietyId = user?.activeSocietyId ?? null;
+
+  async function handleSwitch(societyId: string) {
+    if (!societyId || societyId === activeSocietyId) {
+      return;
+    }
+
+    setSwitching(true);
+
+    try {
+      await apiFetch("/societies/switch", {
+        method: "POST",
+        body: { societyId },
+      });
+
+      window.location.reload();
+    } catch {
+      setSwitching(false);
+    }
+  }
+
+  if (collapsed) {
+    return (
+      <div className="border-b border-border/60 p-2.5">
+        <Link
+          href="/societies"
+          title="Switch society"
+          className="flex h-9 w-9 items-center justify-center rounded-[9px] border border-border/70 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <Building2 className="h-4 w-4" />
+        </Link>
+      </div>
+    );
+  }
+
+  if (societies.length === 0) {
+    return (
+      <div className="border-b border-border/60 p-3">
+        <Link
+          href="/societies"
+          className="flex items-center justify-between rounded-[10px] border border-dashed border-border px-3 py-2 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <span>Create or join a society</span>
+          <ChevronRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-b border-border/60 px-3 py-3">
+      <p className="mb-1.5 px-1 text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground/70">
+        Society
+      </p>
+      <div className="relative">
+        <select
+          value={activeSocietyId ?? ""}
+          onChange={(event) => handleSwitch(event.target.value)}
+          disabled={switching}
+          aria-label="Active society"
+          className="h-9 w-full appearance-none rounded-[9px] border border-border bg-card px-2.5 pr-7 text-[12px] font-medium text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15 disabled:opacity-60"
+        >
+          {activeSocietyId === null && (
+            <option value="">Select a society</option>
+          )}
+          {societies.map((society) => (
+            <option key={society._id} value={society._id}>
+              {society.name}
+            </option>
+          ))}
+        </select>
+        <ChevronRight className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 rotate-90 text-muted-foreground" />
+      </div>
+      {switching && (
+        <p className="mt-1 px-1 text-[10px] text-muted-foreground">
+          Switching...
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -282,7 +388,10 @@ function SidebarAccount({
             {user?.name ?? "Resident"}
           </span>
           <span className="block truncate text-[11px] text-muted-foreground">
-            {user?.role === "admin" ? "Administrator" : user?.email || "Resident"}
+            {user?.activeSociety?.role === "admin" ||
+            user?.activeSociety?.role === "owner"
+            ? "Administrator"
+            : user?.email || "Resident"}
           </span>
         </span>
         <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
@@ -320,6 +429,7 @@ export function MobileSidebar({
   const groups = [
     { label: "Workspace", items: WORKSPACE_NAVIGATION },
     { label: "Your account", items: SUPPORT_NAVIGATION },
+    { label: "Society", items: SOCIETY_NAVIGATION },
     ...(role === "admin"
       ? [{ label: "Administration", items: ADMIN_NAVIGATION }]
       : []),

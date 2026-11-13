@@ -8,6 +8,12 @@ const InvoiceSchema = new mongoose.Schema(
       required: true,
     },
 
+    societyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Society",
+      default: null,
+    },
+
     maintenanceId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Maintenance",

@@ -123,6 +123,7 @@ export async function handlePaymentConfirmation(options: {
     requesterId: user.userId,
     requesterRole: user.role,
     paymentMethod: action.paymentMethod,
+    societyId: user.societyId,
   });
 
   if (!result.ok) {

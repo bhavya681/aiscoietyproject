@@ -7,6 +7,15 @@ const MaintenanceSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+
+    // Owning society. Older rows created before multi-society support may not
+    // have one; every new row is stamped with the active society.
+    societyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Society",
+      default: null,
+    },
+
     monthlyAmount: {
       type: Number,
       required: true,
@@ -40,8 +49,9 @@ const MaintenanceSchema = new mongoose.Schema(
   }
 );
 
-// Every user-facing query filters by owner and due date.
+// Every user-facing query filters by owner, society and due date.
 MaintenanceSchema.index({ userId: 1, dueDate: -1 });
+MaintenanceSchema.index({ societyId: 1, dueDate: -1 });
 
 const Maintenance =
   mongoose.models.Maintenance ||

@@ -5,12 +5,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Building2, Menu } from "lucide-react";
 
-import type { Profile } from "@/app/lib/types";
+import type { Profile, Role } from "@/app/lib/types";
 import ThemeToggle from "@/app/components/ui/ThemeToggle";
 import { MobileSidebar } from "./Sidebar";
 
 type NavbarProps = {
   user?: Profile | null;
+  role?: Role;
 };
 
 const PAGE_LABELS: Array<{ href: string; label: string }> = [
@@ -20,6 +21,7 @@ const PAGE_LABELS: Array<{ href: string; label: string }> = [
   { href: "/maintenance", label: "Maintenance" },
   { href: "/ai", label: "AI assistant" },
   { href: "/profile", label: "Profile" },
+  { href: "/societies", label: "Societies" },
   { href: "/admin", label: "Admin panel" },
 ];
 
@@ -30,7 +32,7 @@ function getPageLabel(pathname: string) {
   );
 }
 
-export default function Navbar({ user }: NavbarProps) {
+export default function Navbar({ user, role }: NavbarProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -62,7 +64,7 @@ export default function Navbar({ user }: NavbarProps) {
 
       <MobileSidebar
         user={user}
-        role={user?.role}
+        role={role}
         open={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
       />

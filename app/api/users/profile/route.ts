@@ -1,6 +1,7 @@
 import { isValidObjectId, getAuthenticatedUser } from "@/app/lib/auth";
 import { apiError, apiSuccess } from "@/app/lib/apiResponse";
 import { connectDB } from "@/app/lib/mongodb";
+import { getSocietySummaries } from "@/app/lib/society";
 import User from "@/app/models/User";
 import type { NextRequest } from "next/server";
 
@@ -28,7 +29,29 @@ export async function GET(request: NextRequest) {
       return apiError("User not found.", 404);
     }
 
-    return apiSuccess({ profile }, "Profile fetched.",200);
+    const societies = await getSocietySummaries(user.userId);
+    const activeSocietyId = profile.activeSocietyId
+      ? String(profile.activeSocietyId)
+      : null;
+
+    const activeSociety =
+      societies.find((society) => society._id === activeSocietyId) ??
+      societies[0] ??
+      null;
+
+    return apiSuccess(
+      {
+        profile: {
+          ...profile,
+          _id: String(profile._id),
+          activeSocietyId,
+          activeSociety,
+          societies,
+        },
+      },
+      "Profile fetched.",
+      200
+    );
   } catch (error) {
     console.error("Profile error:", error);
 

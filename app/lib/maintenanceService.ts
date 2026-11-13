@@ -49,16 +49,29 @@ export async function recordMaintenancePayment(options: {
   requesterId: string;
   requesterRole: AuthRole;
   paymentMethod: PaymentMethod;
+  /** Active society, used to keep residents from paying across societies. */
+  societyId?: string;
 }): Promise<RecordPaymentResult> {
-  const { maintenanceId, requesterId, requesterRole, paymentMethod } = options;
+  const {
+    maintenanceId,
+    requesterId,
+    requesterRole,
+    paymentMethod,
+    societyId,
+  } = options;
 
   await connectDB();
 
   // Residents may only pay their own maintenance; admins may pay on behalf.
-  const ownerFilter =
+  // When an active society is known, the record must also belong to it.
+  const ownerFilter: Record<string, unknown> =
     requesterRole === "admin"
       ? { _id: maintenanceId }
       : { _id: maintenanceId, userId: requesterId };
+
+  if (societyId) {
+    ownerFilter.societyId = societyId;
+  }
 
   const maintenance = await Maintenance.findOne(ownerFilter);
 
@@ -94,6 +107,7 @@ export async function recordMaintenancePayment(options: {
 
   const payment = await Payment.create({
     userId: maintenance.userId,
+    societyId: maintenance.societyId ?? societyId ?? null,
     maintenanceId: maintenance._id,
     amount,
     paymentMethod,

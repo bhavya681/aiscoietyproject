@@ -7,6 +7,13 @@ const PaymentSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+
+    societyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Society",
+      default: null,
+    },
+
     maintenanceId:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"Maintenance",

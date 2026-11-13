@@ -1,12 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { apiError } from "@/app/lib/apiResponse";
-import { getAuthenticatedUser } from "@/app/lib/auth";
+import { getAuthenticatedUser, type AuthUser } from "@/app/lib/auth";
 import {
   askMaintenanceAssistant,
   type ChatMessage,
 } from "@/app/lib/ai/maintenanceAssistant";
 import { handlePaymentConfirmation } from "@/app/lib/ai/paymentConfirmation";
+import { getSocietyContext } from "@/app/lib/society";
 
 const MAX_MESSAGE_LENGTH = 1_000;
 const MAX_HISTORY_MESSAGES = 20;
@@ -76,6 +77,14 @@ export async function POST(request: NextRequest) {
 
     const question = message.trim();
 
+    // Tools must only ever read the active society's rows. Policy answers do
+    // not need a society, so a missing one is not fatal here.
+    const societyResult = await getSocietyContext(request);
+
+    const actingUser: AuthUser = societyResult.ok
+      ? { ...user, societyId: societyResult.context.societyId }
+      : user;
+
     /*
      * ------------------------------------------------------------------
      * STEP 1 — Application-level payment confirmation.
@@ -86,7 +95,7 @@ export async function POST(request: NextRequest) {
      * ------------------------------------------------------------------
      */
     const confirmation = await handlePaymentConfirmation({
-      user,
+      user: actingUser,
       message: question,
       confirmActionId:
         typeof confirmActionId === "string" && confirmActionId
@@ -105,7 +114,7 @@ export async function POST(request: NextRequest) {
      */
     const result = await askMaintenanceAssistant({
       question,
-      user,
+      user: actingUser,
       history: Array.isArray(history)
         ? history.filter(isChatMessage).slice(-MAX_HISTORY_MESSAGES)
         : [],

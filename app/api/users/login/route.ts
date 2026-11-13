@@ -4,6 +4,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { apiError } from "@/app/lib/apiResponse";
 import { signAuthToken, TOKEN_COOKIE } from "@/app/lib/auth";
 import { connectDB } from "@/app/lib/mongodb";
+import { getSocietySummaries } from "@/app/lib/society";
+import Membership from "@/app/models/Membership";
 import User from "@/app/models/User";
 
 export async function POST(request: NextRequest) {
@@ -38,6 +40,29 @@ export async function POST(request: NextRequest) {
       return apiError("Invalid email or password.", 401);
     }
 
+    // Make sure the account points at a society it actually belongs to. A user
+    // with several societies keeps their previous choice; a new or legacy
+    // account defaults to its first membership.
+    const activeSocietyId = user.activeSocietyId?.toString();
+
+    if (!activeSocietyId) {
+      const firstMembership = await Membership.findOne({ userId: user._id })
+        .select("societyId")
+        .sort({ createdAt: 1 })
+        .lean();
+
+      if (firstMembership?.societyId) {
+        user.activeSocietyId = firstMembership.societyId;
+        await user.save();
+      }
+    }
+
+    const societies = await getSocietySummaries(user._id.toString());
+    const activeSociety =
+      societies.find(
+        (society) => society._id === user.activeSocietyId?.toString()
+      ) ?? societies[0] ?? null;
+
     const token = signAuthToken({
       userId: user._id.toString(),
       role: user.role,
@@ -62,6 +87,9 @@ export async function POST(request: NextRequest) {
           name: user.name,
           email: user.email,
           role: user.role,
+          activeSocietyId: user.activeSocietyId?.toString() ?? null,
+          activeSociety,
+          societies,
         },
       },
       { status: 200 }

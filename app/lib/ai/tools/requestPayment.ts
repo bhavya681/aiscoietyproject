@@ -32,7 +32,10 @@ export const requestPaymentTool = tool(
 
     await connectDB();
 
-    const filter: Record<string, unknown> = { userId: user.userId };
+    const filter: Record<string, unknown> = {
+      userId: user.userId,
+      ...(user.societyId ? { societyId: user.societyId } : {}),
+    };
 
     if (maintenanceId) {
       filter._id = maintenanceId;

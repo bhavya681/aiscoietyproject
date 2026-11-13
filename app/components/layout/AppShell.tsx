@@ -5,7 +5,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import { apiFetch } from "@/app/lib/api";
-import type { Profile, ProfileResponse } from "@/app/lib/types";
+import type { Profile, ProfileResponse, Role } from "@/app/lib/types";
 
 /**
  * Shared chrome for every signed-in page.
@@ -46,12 +46,21 @@ export default function AppShell({
     };
   }, []);
 
+  const societyRole = user?.activeSociety?.role;
+  const canAdmin =
+    societyRole === "owner" || societyRole === "admin";
+  const sidebarRole: Role | undefined = user
+    ? canAdmin
+      ? "admin"
+      : "resident"
+    : undefined;
+
   return (
     <div className="min-h-dvh bg-background selection:bg-primary/20">
-      <Navbar user={user} />
+      <Navbar user={user} role={sidebarRole} />
 
       <div className="flex">
-        <Sidebar role={user?.role} user={user} />
+        <Sidebar role={sidebarRole} user={user} />
 
         <main
           className={

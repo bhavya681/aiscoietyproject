@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 
@@ -198,15 +199,19 @@ export default function ProfilePage() {
                 </p>
                 <div className="mt-3">
                   <StatusBadge variant="info" size="sm" className="capitalize">
-                    {profile?.role ?? "resident"}
+                    {profile?.activeSociety?.role ?? profile?.role ?? "resident"}
                   </StatusBadge>
                 </div>
 
                 <div className="mt-5 space-y-3 border-t border-border/70 pt-4 text-xs">
                   <InfoRow label="Email" value={profile?.email ?? "—"} />
                   <InfoRow
-                    label="Role"
-                    value={profile?.role ?? "resident"}
+                    label="Society"
+                    value={profile?.activeSociety?.name ?? "No active society"}
+                  />
+                  <InfoRow
+                    label="Role in society"
+                    value={profile?.activeSociety?.role ?? "—"}
                     capitalize
                   />
                   <InfoRow
@@ -215,9 +220,12 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">
-                  Email and society roles are managed by your administrator.
-                </p>
+                <Link
+                  href="/societies"
+                  className="mt-4 inline-flex text-[11px] font-medium text-primary hover:underline"
+                >
+                  Manage societies
+                </Link>
               </section>
 
               <section className="rounded-2xl border border-border/80 bg-muted/35 p-4">

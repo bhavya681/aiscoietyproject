@@ -14,6 +14,12 @@ export type AuthRole = "admin" | "resident";
 export type AuthUser = {
   userId: string;
   role: AuthRole;
+  /**
+   * Present only when the caller has an active society (set by the AI chat
+   * route). Tools use it to scope reads to that society. It is never read from
+   * the JWT because a resident can switch societies without re-authenticating.
+   */
+  societyId?: string;
 };
 
 function getJwtSecret(): string {

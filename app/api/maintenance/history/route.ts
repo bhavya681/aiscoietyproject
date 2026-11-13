@@ -1,25 +1,30 @@
 import type { NextRequest } from "next/server";
 
 import { apiError, apiSuccess } from "@/app/lib/apiResponse";
-import { getAuthenticatedUser, isValidObjectId } from "@/app/lib/auth";
+import { getSocietyContext } from "@/app/lib/society";
 import { connectDB } from "@/app/lib/mongodb";
 import Maintenance from "@/app/models/Maintenance";
 
 export async function GET(request: NextRequest) {
   try {
-    const user = getAuthenticatedUser(request);
+    const result = await getSocietyContext(request);
 
-    if (!user) {
-      return apiError("Authentication required.", 401);
+    if (!result.ok) {
+      if (result.status === 409) {
+        return apiSuccess({ history: [] }, "No active society.", 200);
+      }
+
+      return apiError(result.message, result.status);
     }
 
-    if (!isValidObjectId(user.userId)) {
-      return apiError("User not found.", 404);
-    }
+    const { context } = result;
 
     await connectDB();
 
-    const history = await Maintenance.find({ userId: user.userId })
+    const history = await Maintenance.find({
+      userId: context.auth.userId,
+      societyId: context.societyId,
+    })
       .sort({ createdAt: -1 })
       .lean();
 

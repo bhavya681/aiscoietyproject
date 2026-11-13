@@ -1,35 +1,32 @@
 import type { NextRequest } from "next/server";
 
 import { apiError, apiSuccess } from "@/app/lib/apiResponse";
-import {
-  getAuthenticatedUser,
-  isValidObjectId,
-  type AuthRole,
-} from "@/app/lib/auth";
-import { connectDB } from "@/app/lib/mongodb";
-import User from "@/app/models/User";
+import { isValidObjectId } from "@/app/lib/auth";
+import { requireSocietyAdmin } from "@/app/lib/society";
+import Membership, { MEMBERSHIP_ROLES } from "@/app/models/Membership";
 
-const ROLES: AuthRole[] = ["admin", "resident"];
-
+/**
+ * Changes a member's role inside the active society.
+ *
+ * Ownership cannot be granted or revoked here, and an admin cannot promote or
+ * demote another admin — only an owner can do that.
+ */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = getAuthenticatedUser(request);
+    const gate = await requireSocietyAdmin(request);
 
-    if (!user) {
-      return apiError("Authentication required.", 401);
+    if (!gate.ok) {
+      return gate.response;
     }
 
-    if (user.role !== "admin") {
-      return apiError("Admin access required.", 403);
-    }
-
+    const { context } = gate;
     const { id } = await params;
 
     if (!isValidObjectId(id)) {
-      return apiError("Invalid user id.", 400);
+      return apiError("Invalid resident id.", 400);
     }
 
     const body = await request.json().catch(() => null);
@@ -40,31 +37,57 @@ export async function PUT(
 
     const { role } = body as Record<string, unknown>;
 
-    if (typeof role !== "string" || !ROLES.includes(role as AuthRole)) {
-      return apiError(`Invalid role. Allowed values: ${ROLES.join(", ")}.`, 400);
+    if (
+      typeof role !== "string" ||
+      !(MEMBERSHIP_ROLES as readonly string[]).includes(role)
+    ) {
+      return apiError(
+        `Invalid role. Allowed values: ${MEMBERSHIP_ROLES.join(", ")}.`,
+        400
+      );
     }
 
-    if (id === user.userId) {
-      // Stops an admin from accidentally removing their own admin access.
+    if (role === "owner") {
+      return apiError("Ownership cannot be transferred here.", 400);
+    }
+
+    const membership = await Membership.findOne({
+      userId: id,
+      societyId: context.societyId,
+    })
+      .select("_id role userId")
+      .lean();
+
+    if (!membership) {
+      return apiError("Member not found in this society.", 404);
+    }
+
+    if (membership.role === "owner") {
+      return apiError("The society owner's role cannot be changed.", 400);
+    }
+
+    if (String(membership.userId) === context.auth.userId) {
       return apiError("You cannot change your own role.", 400);
     }
 
-    await connectDB();
-
-    const updated = await User.findByIdAndUpdate(id, { role }, {
-      new: true,
-      runValidators: true,
-    })
-      .select("-password")
-      .lean();
-
-    if (!updated) {
-      return apiError("User not found.", 404);
+    if (
+      context.membershipRole === "admin" &&
+      (membership.role === "admin" || role === "admin")
+    ) {
+      return apiError("Only an owner can manage admin roles.", 403);
     }
 
-    return apiSuccess({ user: updated }, "User role updated successfully.",200);
+    const updated = await Membership.findByIdAndUpdate(
+      membership._id,
+      { role },
+      { new: true, runValidators: true }
+    )
+      .select("_id role")
+      .lean();
+
+    return apiSuccess({ membership: updated }, "Member role updated.", 200);
   } catch (error) {
-    console.error("Update role error:", error);
+    console.error("Update member role error:", error);
 
     return apiError("Internal server error.", 500);
   }

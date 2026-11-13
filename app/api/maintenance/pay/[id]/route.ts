@@ -7,6 +7,7 @@ import {
   PAYMENT_METHODS,
   recordMaintenancePayment,
 } from "@/app/lib/maintenanceService";
+import { canManageSociety, getSocietyContext } from "@/app/lib/society";
 
 export async function POST(
   request: NextRequest,
@@ -50,11 +51,22 @@ export async function POST(
       );
     }
 
+    const societyResult = await getSocietyContext(request);
+
+    if (!societyResult.ok) {
+      return apiError(societyResult.message, societyResult.status);
+    }
+
+    const { context } = societyResult;
+
     const result = await recordMaintenancePayment({
       maintenanceId: id,
-      requesterId: user.userId,
-      requesterRole: user.role,
+      requesterId: context.auth.userId,
+      requesterRole: canManageSociety(context.membershipRole)
+        ? "admin"
+        : "resident",
       paymentMethod,
+      societyId: context.societyId,
     });
 
     if (!result.ok) {

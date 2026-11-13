@@ -1,28 +1,39 @@
 import type { NextRequest } from "next/server";
 
 import { apiError, apiSuccess } from "@/app/lib/apiResponse";
-import { getAuthenticatedUser, isValidObjectId } from "@/app/lib/auth";
+import { getSocietyContext } from "@/app/lib/society";
 import { connectDB } from "@/app/lib/mongodb";
 import Maintenance from "@/app/models/Maintenance";
 
 export async function GET(request: NextRequest) {
   try {
-    // The owner is taken from the JWT, so a resident can never query
-    // somebody else's maintenance by passing a different id.
-    const user = getAuthenticatedUser(request);
+    const result = await getSocietyContext(request);
 
-    if (!user) {
-      return apiError("Authentication required.", 401);
+    // A resident who has not joined a society yet simply has nothing due.
+    if (!result.ok) {
+      if (result.status === 409) {
+        return apiSuccess(
+          {
+            totalPending: 0,
+            monthlyAmount: 0,
+            nextDueDate: null,
+            maintenance: [],
+          },
+          "No active society.",
+          200
+        );
+      }
+
+      return apiError(result.message, result.status);
     }
 
-    if (!isValidObjectId(user.userId)) {
-      return apiError("User not found.", 404);
-    }
+    const { context } = result;
 
     await connectDB();
 
     const maintenance = await Maintenance.find({
-      userId: user.userId,
+      userId: context.auth.userId,
+      societyId: context.societyId,
       status: { $in: ["pending", "overdue"] },
     })
       .sort({ dueDate: 1 })

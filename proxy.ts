@@ -60,6 +60,8 @@ export const config = {
     "/api/users/update",
     "/api/users/delete",
     "/api/users/reset-password",
+    "/api/societies",
+    "/api/societies/:path*",
     "/api/maintenance/:path*",
     "/api/ai/:path*",
     "/api/admin/:path*",
@@ -67,6 +69,8 @@ export const config = {
     "/dashboard/:path*",
     "/maintenance/:path*",
     "/profile/:path*",
+    "/societies",
+    "/societies/:path*",
     "/admin/:path*",
     "/ai/:path*",
     // Public auth pages

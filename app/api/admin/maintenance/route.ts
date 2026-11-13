@@ -1,22 +1,26 @@
 import type { NextRequest } from "next/server";
 
 import { apiError, apiSuccess } from "@/app/lib/apiResponse";
-import { getAuthenticatedUser, isValidObjectId } from "@/app/lib/auth";
-import { connectDB } from "@/app/lib/mongodb";
+import { isValidObjectId } from "@/app/lib/auth";
+import { requireSocietyAdmin } from "@/app/lib/society";
 import Maintenance from "@/app/models/Maintenance";
-import User from "@/app/models/User";
+import Membership from "@/app/models/Membership";
 
+/**
+ * Raises a maintenance charge for a member of the active society.
+ *
+ * The target resident must already be a member of that society; an admin cannot
+ * bill somebody who belongs to a different society.
+ */
 export async function POST(request: NextRequest) {
   try {
-    const user = getAuthenticatedUser(request);
+    const gate = await requireSocietyAdmin(request);
 
-    if (!user) {
-      return apiError("Authentication required.", 401);
+    if (!gate.ok) {
+      return gate.response;
     }
 
-    if (user.role !== "admin") {
-      return apiError("Admin access required.", 403);
-    }
+    const { context } = gate;
 
     const body = await request.json().catch(() => null);
 
@@ -42,18 +46,23 @@ export async function POST(request: NextRequest) {
       return apiError("A valid dueDate is required.", 400);
     }
 
-    await connectDB();
+    const membership = await Membership.findOne({
+      userId,
+      societyId: context.societyId,
+    }).select("_id");
 
-    const resident = await User.findById(userId).select("-password").lean();
-
-    if (!resident) {
-      return apiError("Resident not found.", 404);
+    if (!membership) {
+      return apiError(
+        "That resident is not a member of this society.",
+        404
+      );
     }
 
     const normalizedDueDate = new Date(dueDate);
 
     const existing = await Maintenance.findOne({
       userId,
+      societyId: context.societyId,
       dueDate: normalizedDueDate,
     }).lean();
 
@@ -63,6 +72,7 @@ export async function POST(request: NextRequest) {
 
     const maintenance = await Maintenance.create({
       userId,
+      societyId: context.societyId,
       // A newly raised bill starts fully outstanding.
       monthlyAmount: amount,
       pendingAmount: amount,
@@ -82,26 +92,25 @@ export async function POST(request: NextRequest) {
   }
 }
 
+/** All maintenance for the active society (admins only). */
 export async function GET(request: NextRequest) {
   try {
-    const user = getAuthenticatedUser(request);
+    const gate = await requireSocietyAdmin(request);
 
-    if (!user) {
-      return apiError("Authentication required.", 401);
+    if (!gate.ok) {
+      return gate.response;
     }
 
-    if (user.role !== "admin") {
-      return apiError("Admin access required.", 403);
-    }
+    const { context } = gate;
 
-    await connectDB();
-
-    const maintenance = await Maintenance.find()
-      .populate("userId", "name email flat address")
+    const maintenance = await Maintenance.find({
+      societyId: context.societyId,
+    })
+      .populate("userId", "name email")
       .sort({ dueDate: -1 })
       .lean();
 
-    return apiSuccess({ maintenance }, "All maintenance fetched.",200);
+    return apiSuccess({ maintenance }, "All maintenance fetched.", 200);
   } catch (error) {
     console.error("Get all maintenance error:", error);
 

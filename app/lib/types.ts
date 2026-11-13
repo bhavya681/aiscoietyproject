@@ -9,6 +9,27 @@ export type Role = "admin" | "resident";
 
 export type MaintenanceStatus = "pending" | "paid" | "overdue";
 
+export type MembershipRole = "owner" | "admin" | "resident";
+
+export type SocietySummary = {
+  _id: string;
+  name: string;
+  slug: string;
+  role: MembershipRole;
+  flat?: string;
+};
+
+export type SocietyMember = {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  flat: string;
+  role: MembershipRole;
+  joinedAt?: string;
+};
+
 export type Profile = {
   _id: string;
   name: string;
@@ -16,6 +37,9 @@ export type Profile = {
   phone: string;
   address: string;
   role: Role;
+  activeSocietyId?: string | null;
+  activeSociety?: SocietySummary | null;
+  societies?: SocietySummary[];
   createdAt?: string;
 };
 
@@ -42,6 +66,16 @@ export type Invoice = {
 
 export type ProfileResponse = {
   profile: Profile;
+};
+
+export type SocietiesResponse = {
+  societies: SocietySummary[];
+  activeSocietyId: string | null;
+};
+
+export type SocietyMembersResponse = {
+  members: SocietyMember[];
+  inviteCode: string;
 };
 
 export type PendingResponse = {

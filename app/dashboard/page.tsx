@@ -79,6 +79,7 @@ export default function DashboardPage() {
   );
   const lastPayment = paidRecords[0] ?? null;
   const firstName = profile?.name?.split(" ")[0] ?? "Resident";
+  const societyName = profile?.activeSociety?.name ?? null;
   const hasPending = (pending?.totalPending ?? 0) > 0;
 
   return (
@@ -87,7 +88,11 @@ export default function DashboardPage() {
         <PageHeader
           eyebrow="Resident overview"
           title={`Welcome back, ${firstName}`}
-          description="A clear view of your maintenance balance, recent payments, and the fastest way to get help."
+          description={
+            societyName
+              ? `Your maintenance, payments and help for ${societyName}.`
+              : "A clear view of your maintenance balance, recent payments, and the fastest way to get help."
+          }
           action={
             <>
               <Link

@@ -18,12 +18,17 @@ import {
 import AuthShell from "@/app/components/ui/AuthShell";
 import { apiFetch } from "@/app/lib/api";
 
+type SocietyMode = "create" | "join";
+
 type SignupForm = {
   name: string;
   email: string;
   password: string;
   phone: string;
   address: string;
+  societyMode: SocietyMode;
+  societyName: string;
+  inviteCode: string;
 };
 
 const EMPTY_FORM: SignupForm = {
@@ -32,6 +37,9 @@ const EMPTY_FORM: SignupForm = {
   password: "",
   phone: "",
   address: "",
+  societyMode: "create",
+  societyName: "",
+  inviteCode: "",
 };
 
 export default function SignupPage() {
@@ -70,7 +78,8 @@ export default function SignupPage() {
           Create your account
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Join the Palm Grove portal. New accounts are created as residents.
+          Create a society or join an existing one. You can belong to more than
+          one society later.
         </p>
       </div>
 
@@ -128,6 +137,71 @@ export default function SignupPage() {
             />
           </span>
         </label>
+
+        <fieldset className="rounded-xl border border-border/70 bg-muted/20 p-3.5">
+          <legend className="px-1 text-xs font-medium text-foreground">
+            Society
+          </legend>
+          <p className="text-[11px] leading-relaxed text-muted-foreground">
+            Create a society and become its owner, or join one with the invite
+            code shared by its admin.
+          </p>
+
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {(["create", "join"] as const).map((mode) => {
+              const active = form.societyMode === mode;
+
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => updateField("societyMode", mode)}
+                  className={`h-9 rounded-[9px] border text-xs font-medium transition-colors ${
+                    active
+                      ? "border-primary/40 bg-accent text-accent-foreground"
+                      : "border-border bg-card text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  {mode === "create" ? "Create new" : "Join existing"}
+                </button>
+              );
+            })}
+          </div>
+
+          {form.societyMode === "create" ? (
+            <label className="mt-3 block">
+              <span className="mb-1.5 block text-xs font-medium text-foreground">
+                Society name
+              </span>
+              <input
+                type="text"
+                value={form.societyName}
+                onChange={(event) =>
+                  updateField("societyName", event.target.value)
+                }
+                placeholder="Palm Grove Residency"
+                required
+                className="h-10 w-full rounded-[10px] border border-input bg-card px-3.5 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-4 focus:ring-primary/10"
+              />
+            </label>
+          ) : (
+            <label className="mt-3 block">
+              <span className="mb-1.5 block text-xs font-medium text-foreground">
+                Invite code
+              </span>
+              <input
+                type="text"
+                value={form.inviteCode}
+                onChange={(event) =>
+                  updateField("inviteCode", event.target.value.toUpperCase())
+                }
+                placeholder="A1B2C3D4"
+                required
+                className="h-10 w-full rounded-[10px] border border-input bg-card px-3.5 font-mono text-sm uppercase tracking-[0.18em] text-foreground outline-none transition placeholder:tracking-normal placeholder:text-muted-foreground/70 focus:border-primary focus:ring-4 focus:ring-primary/10"
+              />
+            </label>
+          )}
+        </fieldset>
 
         <Field
           label="Password"

@@ -1,55 +1,59 @@
 import type { NextRequest } from "next/server";
 
 import { apiError, apiSuccess } from "@/app/lib/apiResponse";
-import { getAuthenticatedUser, isValidObjectId } from "@/app/lib/auth";
-import { connectDB } from "@/app/lib/mongodb";
-import Invoice from "@/app/models/Invoice";
-import Maintenance from "@/app/models/Maintenance";
-import Payment from "@/app/models/Payment";
-import User from "@/app/models/User";
+import { isValidObjectId } from "@/app/lib/auth";
+import { requireSocietyAdmin } from "@/app/lib/society";
+import Membership from "@/app/models/Membership";
 
+/**
+ * Removes a resident from the active society.
+ *
+ * Their maintenance, payment and invoice rows are kept: history belongs to the
+ * account and must survive a membership change. Only the membership is removed,
+ * which revokes access to this society.
+ */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = getAuthenticatedUser(request);
+    const gate = await requireSocietyAdmin(request);
 
-    if (!user) {
-      return apiError("Authentication required.", 401);
+    if (!gate.ok) {
+      return gate.response;
     }
 
-    if (user.role !== "admin") {
-      return apiError("Admin access required.", 403);
-    }
-
+    const { context } = gate;
     const { id } = await params;
 
     if (!isValidObjectId(id)) {
-      return apiError("Invalid user id.", 400);
+      return apiError("Invalid resident id.", 400);
     }
 
-    if (id === user.userId) {
-      return apiError("Admin cannot delete their own account here.", 400);
+    const membership = await Membership.findOne({
+      userId: id,
+      societyId: context.societyId,
+    })
+      .select("_id role userId")
+      .lean();
+
+    if (!membership) {
+      return apiError("Member not found in this society.", 404);
     }
 
-    await connectDB();
-
-    const deleted = await User.findByIdAndDelete(id).select("_id").lean();
-
-    if (!deleted) {
-      return apiError("User not found.", 404);
+    if (membership.role === "owner") {
+      return apiError("The society owner cannot be removed.", 400);
     }
 
-    await Promise.all([
-      Maintenance.deleteMany({ userId: id }),
-      Payment.deleteMany({ userId: id }),
-      Invoice.deleteMany({ userId: id }),
-    ]);
+    if (String(membership.userId) === context.auth.userId) {
+      return apiError("You cannot remove yourself from the society.", 400);
+    }
 
-    return apiSuccess({}, "User deleted successfully.", 200);
+    await Membership.deleteOne({ _id: membership._id });
+
+    return apiSuccess({}, "Member removed from the society.", 200);
   } catch (error) {
-    console.error("Admin delete user error:", error);
+    console.error("Admin delete member error:", error);
 
     return apiError("Internal server error.", 500);
   }

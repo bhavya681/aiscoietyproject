@@ -30,6 +30,7 @@ export const getPendingMaintenanceTool = tool(
 
     const records = await Maintenance.find({
       userId: user.userId,
+      ...(user.societyId ? { societyId: user.societyId } : {}),
       status: { $in: ["pending", "overdue"] },
     })
       .sort({ dueDate: 1 })

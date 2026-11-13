@@ -131,8 +131,8 @@ export default function LoginPage() {
       </Link>
 
       <p className="mt-8 text-center text-[11px] leading-relaxed text-muted-foreground">
-        Access is limited to residents of Palm Grove Residency. Contact your
-        society administrator if you need help with your account.
+        Access is limited to residents of the societies you have joined. Contact
+        your society administrator if you need help with your account.
       </p>
     </AuthShell>
   );

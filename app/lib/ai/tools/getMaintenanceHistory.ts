@@ -25,7 +25,10 @@ export const getMaintenanceHistoryTool = tool(
 
     await connectDB();
 
-    const history = await Maintenance.find({ userId: user.userId })
+    const history = await Maintenance.find({
+      userId: user.userId,
+      ...(user.societyId ? { societyId: user.societyId } : {}),
+    })
       .sort({ createdAt: -1 })
       .limit(limit ?? DEFAULT_LIMIT)
       .lean();
