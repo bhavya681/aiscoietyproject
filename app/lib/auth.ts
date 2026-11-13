@@ -84,11 +84,29 @@ export function verifyAuthToken(token: string | undefined): AuthUser | null {
 }
 
 /**
+ * Reads the JWT from the request.
+ *
+ * Browsers use the httpOnly `token` cookie, while native clients (React
+ * Native, Expo) send `Authorization: Bearer <token>` because they cannot rely
+ * on cookie jars. Both are validated by the same `verifyAuthToken`, so the
+ * rest of the API only sees a verified identity.
+ */
+export function getRequestToken(request: NextRequest): string | undefined {
+  const authorization = request.headers.get("authorization");
+  const bearer = authorization?.startsWith("Bearer ")
+    ? authorization.slice("Bearer ".length).trim()
+    : undefined;
+
+  return bearer || request.cookies.get(TOKEN_COOKIE)?.value;
+}
+
+/**
  * Resolves the authenticated user for an incoming request by verifying the
- * httpOnly cookie. Returns `null` for missing or invalid tokens.
+ * Bearer token or the httpOnly cookie. Returns `null` for missing or invalid
+ * tokens.
  */
 export function getAuthenticatedUser(request: NextRequest): AuthUser | null {
-  return verifyAuthToken(request.cookies.get(TOKEN_COOKIE)?.value);
+  return verifyAuthToken(getRequestToken(request));
 }
 
 export function isValidObjectId(id: string): boolean {

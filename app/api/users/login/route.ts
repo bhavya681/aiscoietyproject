@@ -43,10 +43,20 @@ export async function POST(request: NextRequest) {
       role: user.role,
     });
 
+    /**
+     * Native clients cannot rely on Set-Cookie or a browser cookie jar, so they
+     * receive the token in the body and send it back as a Bearer header.
+     * Browsers never send this header, which keeps the httpOnly cookie as the
+     * only browser session mechanism.
+     */
+    const isMobileClient =
+      request.headers.get("x-client-platform") === "mobile";
+
     const response = NextResponse.json(
       {
         success: true,
         message: "Successfully logged in.",
+        ...(isMobileClient ? { token } : {}),
         user: {
           id: user._id.toString(),
           name: user.name,

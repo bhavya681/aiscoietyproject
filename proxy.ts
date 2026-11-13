@@ -1,11 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { TOKEN_COOKIE, verifyAuthToken } from "./app/lib/auth";
+import { getRequestToken, verifyAuthToken } from "./app/lib/auth";
 
 /**
  * Authentication boundary (Next.js 16 `proxy` convention).
  *
  * Responsibilities:
+ *  - let CORS preflight requests through without requiring a session
  *  - reject protected API routes without a valid JWT (401)
  *  - redirect signed-out users away from private pages to /login
  *  - keep already-authenticated users out of /login and /signup
@@ -16,7 +17,13 @@ import { TOKEN_COOKIE, verifyAuthToken } from "./app/lib/auth";
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const user = verifyAuthToken(request.cookies.get(TOKEN_COOKIE)?.value);
+  // Preflight requests never carry credentials. Route handlers answer them
+  // with 204; the CORS headers themselves come from next.config.ts.
+  if (request.method === "OPTIONS" && pathname.startsWith("/api/")) {
+    return NextResponse.next();
+  }
+
+  const user = verifyAuthToken(getRequestToken(request));
 
   // A signed-in user has no reason to see the login or signup screen.
   if (pathname === "/login" || pathname === "/signup") {
