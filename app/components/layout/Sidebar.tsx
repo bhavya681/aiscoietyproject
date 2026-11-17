@@ -11,6 +11,7 @@ import {
   History,
   LayoutDashboard,
   LogOut,
+  MessageCircle,
   Shield,
   User,
   Wrench,
@@ -39,6 +40,7 @@ const ADMIN_NAVIGATION = [
 
 const SOCIETY_NAVIGATION = [
   { name: "Your societies", href: "/societies", icon: Building2 },
+  { name: "Society chat", href: "/societies/chat", icon: MessageCircle },
 ] as const;
 
 function isActive(pathname: string, href: string) {
